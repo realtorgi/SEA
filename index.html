@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seattle English Academy - 통합 관리 포털</title>
-    <!-- Tailwind CSS CDN (모바일 UI 최적화) -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind 다크모드 설정을 'class' 기반으로 활성화
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <style>
-        /* 모바일 iframe 영역 스크롤 최적화 */
         .system-frame {
             width: 100%;
             height: calc(100vh - 130px);
@@ -15,62 +20,67 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 flex flex-col h-screen overflow-hidden">
+<body class="bg-gray-100 dark:bg-gray-900 flex flex-col h-screen overflow-hidden transition-colors duration-200">
 
     <!-- 상단 컴팩트 헤더 -->
-    <header class="bg-blue-900 text-white shadow-md z-10 flex justify-between items-center px-4 py-3">
+    <header class="bg-blue-900 dark:bg-gray-800 text-white shadow-md z-10 flex justify-between items-center px-4 py-3 transition-colors duration-200">
         <div class="flex items-center space-x-2">
             <span class="text-xl">🏫</span>
             <div>
                 <h1 class="text-sm font-bold tracking-tight">Seattle English Academy</h1>
-                <p class="text-xs text-blue-200" id="current-system-title">통합 대시보드</p>
+                <p class="text-xs text-blue-200 dark:text-gray-400" id="current-system-title">통합 대시보드</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
-            <span class="bg-blue-700 text-xs px-2 py-1 rounded-full text-blue-100 font-medium">원장/강사 모드</span>
+            <!-- 다크 모드 토글 버튼 -->
+            <button onclick="toggleDarkMode()" class="bg-blue-800 dark:bg-gray-700 hover:bg-blue-700 text-xs px-2.5 py-1.5 rounded-full text-white font-medium flex items-center space-x-1 transition">
+                <span id="dark-icon">🌙</span>
+                <span id="dark-text">다크</span>
+            </button>
+            <span class="bg-blue-700 dark:bg-gray-700 text-xs px-2 py-1 rounded-full text-blue-100 dark:text-gray-300 font-medium">원장/강사</span>
         </div>
     </header>
 
-    <!-- 메인 컨텐츠 영역 (iframe을 통한 6개 시스템 통합 실시간 로드) -->
-    <main class="flex-1 relative overflow-hidden bg-white">
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="flex-1 relative overflow-hidden bg-white dark:bg-gray-900 transition-colors duration-200">
         <!-- 1. 메인 대시보드 (요약 포털 홈) -->
         <div id="view-home" class="view-section p-4 overflow-y-auto h-full">
             <div class="mb-4">
-                <h2 class="text-lg font-bold text-gray-800">👋 안녕하세요, 원장님!</h2>
-                <p class="text-xs text-gray-500">오늘의 학원 운영 시스템에 바로 접속하세요.</p>
+                <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">👋 안녕하세요, 원장님!</h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400">오늘의 학원 운영 시스템에 바로 접속하세요.</p>
             </div>
 
-            <!-- 빠른 바로가기 카드 Grid (모바일 터치 최적화) -->
+            <!-- 빠른 바로가기 카드 Grid (다크모드 색상 대응) -->
             <div class="grid grid-cols-2 gap-3 pb-20">
-                <button onclick="switchTab('timetable', '시간표 시스템', 'https://realtorgi.github.io/timetable')" class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
+                <button onclick="switchTab('timetable', '시간표 시스템', 'https://realtorgi.github.io/timetable')" class="bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
                     <span class="text-2xl">⏰</span>
-                    <h3 class="font-bold text-blue-900 text-sm mt-2">시간표 시스템</h3>
-                    <p class="text-xs text-gray-500 mt-1">수업 일정 조회 및 편집</p>
+                    <h3 class="font-bold text-blue-900 dark:text-blue-300 text-sm mt-2">시간표 시스템</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">수업 일정 조회 및 편집</p>
                 </button>
-                <button onclick="switchTab('classschedule', '수업 진도 관리', 'https://realtorgi.github.io/classschedule')" class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
+                <button onclick="switchTab('classschedule', '수업 진도 관리', 'https://realtorgi.github.io/classschedule')" class="bg-indigo-50 dark:bg-gray-800 border border-indigo-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
                     <span class="text-2xl">📅</span>
-                    <h3 class="font-bold text-indigo-900 text-sm mt-2">수업 일정/진도</h3>
-                    <p class="text-xs text-gray-500 mt-1">학급별 진도 및 학습 기록</p>
+                    <h3 class="font-bold text-indigo-900 dark:text-indigo-300 text-sm mt-2">수업 일정/진도</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">학급별 진도 및 학습 기록</p>
                 </button>
-                <button onclick="switchTab('homework', '숙제 관리 시스템', 'https://realtorgi.github.io/homeowork')" class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
+                <button onclick="switchTab('homework', '숙제 관리 시스템', 'https://realtorgi.github.io/homeowork')" class="bg-emerald-50 dark:bg-gray-800 border border-emerald-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
                     <span class="text-2xl">📝</span>
-                    <h3 class="font-bold text-emerald-900 text-sm mt-2">숙제 관리</h3>
-                    <p class="text-xs text-gray-500 mt-1">과제 진행도 및 미제출 체크</p>
+                    <h3 class="font-bold text-emerald-900 dark:text-emerald-300 text-sm mt-2">숙제 관리</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">과제 진행도 및 미제출 체크</p>
                 </button>
-                <button onclick="switchTab('pattern', '패턴 분석 시스템', 'https://realtorgi.github.io/pattern')" class="bg-amber-50 border border-amber-200 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
+                <button onclick="switchTab('pattern', '패턴 분석 시스템', 'https://realtorgi.github.io/pattern')" class="bg-amber-50 dark:bg-gray-800 border border-amber-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
                     <span class="text-2xl">🔄</span>
-                    <h3 class="font-bold text-amber-900 text-sm mt-2">패턴/오답 분석</h3>
-                    <p class="text-xs text-gray-500 mt-1">모의고사 누적 오답 지도</p>
+                    <h3 class="font-bold text-amber-900 dark:text-amber-300 text-sm mt-2">패턴/오답 분석</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">모의고사 누적 오답 지도</p>
                 </button>
-                <button onclick="switchTab('review', '리뷰 및 시험 분석', 'https://realtorgi.github.io/review')" class="bg-purple-50 border border-purple-200 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
+                <button onclick="switchTab('review', '리뷰 및 시험 분석', 'https://realtorgi.github.io/review')" class="bg-purple-50 dark:bg-gray-800 border border-purple-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
                     <span class="text-2xl">⭐</span>
-                    <h3 class="font-bold text-purple-900 text-sm mt-2">리뷰/AI 시험 분석</h3>
-                    <p class="text-xs text-gray-500 mt-1">시험지 스캔 및 학부모 리포트</p>
+                    <h3 class="font-bold text-purple-900 dark:text-purple-300 text-sm mt-2">리뷰/AI 시험 분석</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">시험지 스캔 및 학부모 리포트</p>
                 </button>
-                <button onclick="switchTab('payroll', '급여 관리 시스템', 'https://realtorgi.github.io/payroll')" class="bg-rose-50 border border-rose-200 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
+                <button onclick="switchTab('payroll', '급여 관리 시스템', 'https://realtorgi.github.io/payroll')" class="bg-rose-50 dark:bg-gray-800 border border-rose-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition">
                     <span class="text-2xl">💰</span>
-                    <h3 class="font-bold text-rose-900 text-sm mt-2">급여 관리</h3>
-                    <p class="text-xs text-gray-500 mt-1">선생님 인보이스 및 정산</p>
+                    <h3 class="font-bold text-rose-900 dark:text-rose-300 text-sm mt-2">급여 관리</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">선생님 인보이스 및 정산</p>
                 </button>
             </div>
         </div>
@@ -81,25 +91,25 @@
         </div>
     </main>
 
-    <!-- 하단 고정 네비게이션 바 (모바일 엄지손가락 동선 최적화) -->
-    <nav class="bg-white border-t border-gray-200 h-16 flex justify-around items-center px-2 z-10">
-        <button onclick="goHome()" class="flex flex-col items-center justify-center w-1/5 text-blue-900 focus:outline-none">
+    <!-- 하단 고정 네비게이션 바 -->
+    <nav class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 h-16 flex justify-around items-center px-2 z-10 transition-colors duration-200">
+        <button onclick="goHome()" class="flex flex-col items-center justify-center w-1/5 text-blue-900 dark:text-blue-400 focus:outline-none">
             <span class="text-lg">🏠</span>
             <span class="text-[10px] font-medium mt-0.5">홈</span>
         </button>
-        <button onclick="switchTab('timetable', '시간표 시스템', 'https://realtorgi.github.io/timetable')" class="flex flex-col items-center justify-center w-1/5 text-gray-500 hover:text-blue-900 focus:outline-none">
+        <button onclick="switchTab('timetable', '시간표 시스템', 'https://realtorgi.github.io/timetable')" class="flex flex-col items-center justify-center w-1/5 text-gray-500 dark:text-gray-400 hover:text-blue-900 dark:hover:text-blue-300 focus:outline-none">
             <span class="text-lg">⏰</span>
             <span class="text-[10px] font-medium mt-0.5">시간표</span>
         </button>
-        <button onclick="switchTab('homework', '숙제 관리 시스템', 'https://realtorgi.github.io/homeowork')" class="flex flex-col items-center justify-center w-1/5 text-gray-500 hover:text-blue-900 focus:outline-none">
+        <button onclick="switchTab('homework', '숙제 관리 시스템', 'https://realtorgi.github.io/homeowork')" class="flex flex-col items-center justify-center w-1/5 text-gray-500 dark:text-gray-400 hover:text-blue-900 dark:hover:text-blue-300 focus:outline-none">
             <span class="text-lg">📝</span>
             <span class="text-[10px] font-medium mt-0.5">숙제</span>
         </button>
-        <button onclick="switchTab('review', '리뷰 및 시험 분석', 'https://realtorgi.github.io/review')" class="flex flex-col items-center justify-center w-1/5 text-gray-500 hover:text-blue-900 focus:outline-none">
+        <button onclick="switchTab('review', '리뷰 및 시험 분석', 'https://realtorgi.github.io/review')" class="flex flex-col items-center justify-center w-1/5 text-gray-500 dark:text-gray-400 hover:text-blue-900 dark:hover:text-blue-300 focus:outline-none">
             <span class="text-lg">⭐</span>
             <span class="text-[10px] font-medium mt-0.5">시험/리뷰</span>
         </button>
-        <button onclick="switchTab('payroll', '급여 관리 시스템', 'https://realtorgi.github.io/payroll')" class="flex flex-col items-center justify-center w-1/5 text-gray-500 hover:text-blue-900 focus:outline-none">
+        <button onclick="switchTab('payroll', '급여 관리 시스템', 'https://realtorgi.github.io/payroll')" class="flex flex-col items-center justify-center w-1/5 text-gray-500 dark:text-gray-400 hover:text-blue-900 dark:hover:text-blue-300 focus:outline-none">
             <span class="text-lg">💰</span>
             <span class="text-[10px] font-medium mt-0.5">급여정산</span>
         </button>
@@ -113,7 +123,7 @@
             
             const iframe = document.getElementById('active-iframe');
             if (iframe.src !== url) {
-                iframe.src = url; // 해당 시스템 사이트 로드
+                iframe.src = url;
             }
         }
 
@@ -123,6 +133,34 @@
             document.getElementById('view-home').classList.remove('hidden');
             document.getElementById('active-iframe').src = '';
         }
+
+        // 다크 모드 토글 기능
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const darkIcon = document.getElementById('dark-icon');
+            const darkText = document.getElementById('dark-text');
+
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                darkIcon.innerText = '🌙';
+                darkText.innerText = '다크';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                darkIcon.innerText = '☀️';
+                darkText.innerText = '라이트';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // 페이지 로드 시 기존 사용자 테마 설정 불러오기
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('dark-icon').innerText = '☀️';
+                document.getElementById('dark-text').innerText = '라이트';
+            }
+        });
     </script>
 </body>
 </html>
