@@ -3,227 +3,805 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seattle English Academy - 통합 관리 포털</title>
+    <title>Seattle English Academy - 통합 경영 포털</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Pretendard 폰트 로드 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <script>
         tailwind.config = {
             darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+        // 이미지 로드보다 먼저 실행될 수 있도록 head에서 폴백 함수 선제 정의
+        const FALLBACK_CEO_AVATAR = "https://placehold.co/200x200/1e293b/ffffff?text=Director+Gi+Nam";
+        function handleCeoImgError(imgEl) {
+            if (imgEl && imgEl.src !== FALLBACK_CEO_AVATAR) {
+                imgEl.onerror = null;
+                imgEl.src = FALLBACK_CEO_AVATAR;
+            }
         }
     </script>
     <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
         .system-frame {
             width: 100%;
-            height: calc(100vh - 130px);
+            height: calc(100vh - 124px);
             border: none;
         }
-        /* 하단 네비게이션 가로 스크롤 및 레이아웃 최적화 */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
+        /* PC 전용 조직도 연결선 */
+        @media (min-width: 1024px) {
+            .org-line-h {
+                height: 1.5px;
+                background-color: #cbd5e1;
+                position: absolute;
+                top: -24px;
+                left: 10%;
+                right: 10%;
+            }
+            .dark .org-line-h {
+                background-color: #334155;
+            }
+            .org-line-v-center {
+                width: 1.5px;
+                height: 24px;
+                background-color: #cbd5e1;
+                margin: 0 auto;
+            }
+            .dark .org-line-v-center {
+                background-color: #334155;
+            }
+            .org-line-v-down {
+                width: 1.5px;
+                height: 24px;
+                background-color: #cbd5e1;
+                position: absolute;
+                top: -24px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            .dark .org-line-v-down {
+                background-color: #334155;
+            }
         }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 flex flex-col h-screen overflow-hidden transition-colors duration-200">
+<body class="bg-slate-100 dark:bg-[#0B111E] text-slate-800 dark:text-slate-200 flex flex-col h-screen overflow-hidden transition-colors duration-200">
 
-    <!-- 상단 컴팩트 헤더 -->
-    <header class="bg-blue-900 dark:bg-gray-800 text-white shadow-md z-10 flex justify-between items-center px-4 py-3 transition-colors duration-200">
-        <!-- 상단 로고 클릭 시 홈으로 이동 -->
-        <div onclick="goHome()" class="flex items-center space-x-2 cursor-pointer group">
-            <span class="text-xl group-hover:scale-110 transition">🏫</span>
-            <div>
-                <h1 class="text-sm font-bold tracking-tight">Seattle English Academy</h1>
-                <p class="text-xs text-blue-200 dark:text-gray-400" id="current-system-title">통합 대시보드</p>
+    <!-- 상단 프로페셔널 헤더 -->
+    <header class="bg-white dark:bg-[#131B2E] border-b border-slate-200 dark:border-slate-800/90 shadow-sm z-20 flex justify-between items-center px-4 sm:px-6 h-14 transition-colors duration-200">
+        <!-- 로고 및 서비스 명칭 -->
+        <div onclick="goHome()" class="flex items-center space-x-2.5 cursor-pointer group">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-extrabold text-xs tracking-tighter shadow-sm group-hover:scale-105 transition">
+                SEA
+            </div>
+            <div class="flex items-center space-x-2">
+                <h1 class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white group-hover:text-indigo-500 transition">
+                    Seattle English Academy
+                </h1>
+                <span class="hidden sm:inline-block text-slate-300 dark:text-slate-700">|</span>
+                <p class="hidden sm:block text-xs text-slate-500 dark:text-slate-400 font-medium" id="current-system-title">
+                    통합 관리 포털
+                </p>
             </div>
         </div>
 
-        <div class="flex items-center space-x-2">
-            <!-- 시스템 내부에서 홈으로 돌아가는 '메인으로' 버튼 -->
-            <button id="back-btn" onclick="goHome()" class="hidden bg-blue-800 dark:bg-gray-700 hover:bg-blue-700 text-xs px-2.5 py-1.5 rounded-full text-white font-medium items-center space-x-1 transition">
-                <span>⬅️ 메인으로</span>
+        <!-- 우측 상단: 컨트롤러 & 지남 원장님 프로필 -->
+        <div class="flex items-center space-x-2.5 sm:space-x-4">
+            <!-- 한국어/영어 언어 전환 버튼 -->
+            <button onclick="toggleLanguage()" id="lang-btn" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-2.5 py-1.5 rounded-lg font-bold transition border border-slate-200 dark:border-slate-700">
+                ENG
             </button>
-            <!-- 다크 모드 토글 버튼 -->
-            <button onclick="toggleDarkMode()" class="bg-blue-800 dark:bg-gray-700 hover:bg-blue-700 text-xs px-2.5 py-1.5 rounded-full text-white font-medium flex items-center space-x-1 transition">
-                <span id="dark-icon">🌙</span>
-                <span id="dark-text">다크</span>
+
+            <!-- 조직 개편 버튼 -->
+            <button onclick="toggleEditMode()" id="edit-mode-btn" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg font-semibold flex items-center space-x-1.5 transition border border-slate-200 dark:border-slate-700">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span id="edit-btn-label">조직 개편</span>
+            </button>
+
+            <!-- 메인으로 복귀 버튼 -->
+            <button id="back-btn" onclick="goHome()" class="hidden bg-indigo-600 hover:bg-indigo-500 text-xs px-3 py-1.5 rounded-lg text-white font-semibold items-center space-x-1 transition shadow-sm">
+                <span id="back-btn-label">← 조직도</span>
+            </button>
+
+            <!-- 원장님 프로필 카드 (클릭 시 실제 사진 파일 업로드 가능) -->
+            <div onclick="triggerCeoPhotoUpload()" title="클릭하여 원장님 실제 사진 등록/변경" class="flex items-center space-x-2 pl-2 sm:pl-3 border-l border-slate-200 dark:border-slate-800 cursor-pointer group">
+                <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-700 border border-indigo-400/50 shrink-0 group-hover:ring-2 group-hover:ring-indigo-400 transition">
+                    <img id="ceo-header-img" src="./ceo.jpg" class="w-full h-full object-cover object-top" alt="지남 원장님" onerror="handleCeoImgError(this)">
+                </div>
+                <div class="hidden md:block text-left leading-tight">
+                    <span id="header-ceo-name" class="block text-xs font-bold text-slate-900 dark:text-white">지남 원장님</span>
+                    <span class="block text-[10px] text-slate-400 font-semibold">(CEO)</span>
+                </div>
+            </div>
+            <!-- 숨겨진 원장님 사진 업로드 인풋 -->
+            <input type="file" id="ceo-photo-input" accept="image/*" class="hidden" onchange="handleCeoPhotoSelected(event)">
+
+            <!-- 다크/라이트 모드 토글 -->
+            <button onclick="toggleDarkMode()" class="px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center space-x-1 transition">
+                <span id="dark-icon">☀️</span>
+                <span id="dark-label" class="hidden sm:inline">라이트</span>
             </button>
         </div>
     </header>
 
     <!-- 메인 컨텐츠 영역 -->
-    <main class="flex-1 relative overflow-hidden bg-white dark:bg-gray-900 transition-colors duration-200">
-        <!-- 1. 메인 대시보드 (요약 포털 홈) -->
-        <div id="view-home" class="view-section p-4 overflow-y-auto h-full">
-            <div class="mb-4">
-                <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">👋 안녕하세요, 원장님!</h2>
-                <p class="text-xs text-gray-500 dark:text-gray-400">오늘의 학원 운영 시스템에 바로 접속하세요.</p>
+    <main class="flex-1 relative overflow-hidden bg-slate-100 dark:bg-[#0E1525] transition-colors duration-200">
+        
+        <!-- 1. 메인 조직도 (홈) -->
+        <div id="view-home" class="view-section p-5 sm:p-8 overflow-y-auto h-full flex flex-col items-center">
+            
+            <!-- 최상단 CEO 헤드 카드 (시안 이미지 디자인 반영) -->
+            <div class="w-full max-w-[260px] flex flex-col items-center text-center mb-6 relative z-10">
+                <div class="bg-white dark:bg-[#1A243B] rounded-2xl p-5 shadow-lg border border-slate-200 dark:border-indigo-500/30 w-full hover:border-indigo-400 transition duration-200">
+                    <div onclick="triggerCeoPhotoUpload()" title="클릭하여 원장님 실제 사진 등록/변경" class="relative w-20 h-20 rounded-full mx-auto overflow-hidden border-2 border-indigo-400/70 shadow-md mb-3 bg-slate-800 cursor-pointer group">
+                        <img id="ceo-main-img" src="./ceo.jpg" class="w-full h-full object-cover object-top" alt="지남 원장님" onerror="handleCeoImgError(this)">
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                            <span class="text-[10px] text-white font-bold">사진 변경</span>
+                        </div>
+                    </div>
+                    <h2 id="main-ceo-name" class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">지남 원장님</h2>
+                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">(CEO)</p>
+                </div>
+                <!-- PC 연결 수직선 -->
+                <div class="hidden lg:block org-line-v-center"></div>
             </div>
 
-            <!-- 빠른 바로가기 카드 Grid (총 7개 앱) -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-24">
-                <!-- 1. 시간표 -->
-                <button onclick="switchTab('timetable', '시간표 시스템', 'https://realtorgi.github.io/timetable')" class="bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition hover:shadow-md">
-                    <span class="text-2xl">⏰</span>
-                    <h3 class="font-bold text-blue-900 dark:text-blue-300 text-sm mt-2">시간표 시스템</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">수업 일정 조회 및 편집</p>
-                </button>
-
-                <!-- 2. 수업 일정/진도 -->
-                <button onclick="switchTab('classschedule', '수업 진도 관리', 'https://realtorgi.github.io/classschedule')" class="bg-indigo-50 dark:bg-gray-800 border border-indigo-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition hover:shadow-md">
-                    <span class="text-2xl">📅</span>
-                    <h3 class="font-bold text-indigo-900 dark:text-indigo-300 text-sm mt-2">수업 일정/진도</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">학급별 진도 및 학습 기록</p>
-                </button>
-
-                <!-- 3. 숙제 관리 -->
-                <button onclick="switchTab('homework', '숙제 관리 시스템', 'https://realtorgi.github.io/homework')" class="bg-emerald-50 dark:bg-gray-800 border border-emerald-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition hover:shadow-md">
-                    <span class="text-2xl">📝</span>
-                    <h3 class="font-bold text-emerald-900 dark:text-emerald-300 text-sm mt-2">숙제 관리</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">과제 진행도 및 미제출 체크</p>
-                </button>
-
-                <!-- 4. 리뷰/AI 시험 분석 (위치 변경) -->
-                <button onclick="switchTab('review', '리뷰 및 시험 분석', 'https://realtorgi.github.io/review')" class="bg-purple-50 dark:bg-gray-800 border border-purple-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition hover:shadow-md">
-                    <span class="text-2xl">⭐</span>
-                    <h3 class="font-bold text-purple-900 dark:text-purple-300 text-sm mt-2">리뷰/AI 시험 분석</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">시험지 스캔 및 학부모 리포트</p>
-                </button>
-
-                <!-- 5. 패턴/오답 분석 (위치 변경) -->
-                <button onclick="switchTab('pattern', '패턴 분석 시스템', 'https://realtorgi.github.io/pattern')" class="bg-amber-50 dark:bg-gray-800 border border-amber-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition hover:shadow-md">
-                    <span class="text-2xl">🔄</span>
-                    <h3 class="font-bold text-amber-900 dark:text-amber-300 text-sm mt-2">패턴/오답 분석</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">모의고사 누적 오답 지도</p>
-                </button>
-
-                <!-- 6. 내신대비 -->
-                <button onclick="switchTab('testprep', '내신대비 시스템', 'https://realtorgi.github.io/testprep')" class="bg-teal-50 dark:bg-gray-800 border border-teal-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition hover:shadow-md">
-                    <span class="text-2xl">📚</span>
-                    <h3 class="font-bold text-teal-900 dark:text-teal-300 text-sm mt-2">내신대비</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">중·고등 내신 준비</p>
-                </button>
-
-                <!-- 7. 급여 관리 (맨 뒤로 이동) -->
-                <button onclick="switchTab('payroll', '급여 관리 시스템', 'https://realtorgi.github.io/payroll')" class="bg-rose-50 dark:bg-gray-800 border border-rose-200 dark:border-gray-700 p-4 rounded-xl text-left shadow-sm active:scale-95 transition hover:shadow-md">
-                    <span class="text-2xl">💰</span>
-                    <h3 class="font-bold text-rose-900 dark:text-rose-300 text-sm mt-2">급여 관리</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">선생님 인보이스 및 정산</p>
-                </button>
+            <!-- 5대 부서 리스트 영역 -->
+            <div class="w-full max-w-[1400px] relative pb-24">
+                <!-- PC 연결 가로선 (1024px 이상 PC 화면에서 5개 부서를 일렬로 연결) -->
+                <div id="org-bridge-h" class="hidden lg:block org-line-h"></div>
+                
+                <!-- 부서 그리드: 모바일(1열) / 태블릿(2열) / PC(5열 일렬 정렬) -->
+                <div id="departments-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 relative">
+                    <!-- JavaScript로 부서 카드 렌더링 -->
+                </div>
             </div>
         </div>
 
         <!-- 2. 동적 시스템 로드용 iframe 영역 -->
-        <div id="view-iframe" class="hidden h-full">
+        <div id="view-iframe" class="hidden h-full bg-white dark:bg-[#0B111E]">
             <iframe id="active-iframe" class="system-frame" src=""></iframe>
         </div>
     </main>
 
-    <!-- 하단 고정 네비게이션 바 (총 7개 메뉴 전체 노출) -->
-    <nav class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 h-16 flex items-center px-1 z-10 transition-colors duration-200 overflow-x-auto no-scrollbar">
-        <!-- 1. 홈 -->
-        <button onclick="goHome()" class="flex-1 min-w-[50px] flex flex-col items-center justify-center text-blue-900 dark:text-blue-400 focus:outline-none py-1">
-            <span class="text-base">🏠</span>
-            <span class="text-[9px] sm:text-[10px] font-medium mt-0.5 whitespace-nowrap">홈</span>
-        </button>
-
-        <!-- 2. 시간표 -->
-        <button onclick="switchTab('timetable', '시간표 시스템', 'https://realtorgi.github.io/timetable')" class="flex-1 min-w-[50px] flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-blue-900 dark:hover:text-blue-300 focus:outline-none py-1">
-            <span class="text-base">⏰</span>
-            <span class="text-[9px] sm:text-[10px] font-medium mt-0.5 whitespace-nowrap">시간표</span>
-        </button>
-
-        <!-- 3. 수업 일정/진도 -->
-        <button onclick="switchTab('classschedule', '수업 진도 관리', 'https://realtorgi.github.io/classschedule')" class="flex-1 min-w-[50px] flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-blue-900 dark:hover:text-blue-300 focus:outline-none py-1">
-            <span class="text-base">📅</span>
-            <span class="text-[9px] sm:text-[10px] font-medium mt-0.5 whitespace-nowrap">진도관리</span>
-        </button>
-
-        <!-- 4. 숙제 -->
-        <button onclick="switchTab('homework', '숙제 관리 시스템', 'https://realtorgi.github.io/homework')" class="flex-1 min-w-[50px] flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-blue-900 dark:hover:text-blue-300 focus:outline-none py-1">
-            <span class="text-base">📝</span>
-            <span class="text-[9px] sm:text-[10px] font-medium mt-0.5 whitespace-nowrap">숙제</span>
-        </button>
-
-        <!-- 5. 시험/리뷰 (위치 변경) -->
-        <button onclick="switchTab('review', '리뷰 및 시험 분석', 'https://realtorgi.github.io/review')" class="flex-1 min-w-[50px] flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-blue-900 dark:hover:text-blue-300 focus:outline-none py-1">
-            <span class="text-base">⭐</span>
-            <span class="text-[9px] sm:text-[10px] font-medium mt-0.5 whitespace-nowrap">시험/리뷰</span>
-        </button>
-
-        <!-- 6. 오답분석 (위치 변경) -->
-        <button onclick="switchTab('pattern', '패턴 분석 시스템', 'https://realtorgi.github.io/pattern')" class="flex-1 min-w-[50px] flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-blue-900 dark:hover:text-blue-300 focus:outline-none py-1">
-            <span class="text-base">🔄</span>
-            <span class="text-[9px] sm:text-[10px] font-medium mt-0.5 whitespace-nowrap">오답분석</span>
-        </button>
-
-        <!-- 7. 내신대비 -->
-        <button onclick="switchTab('testprep', '내신대비 시스템', 'https://realtorgi.github.io/testprep')" class="flex-1 min-w-[50px] flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-blue-900 dark:hover:text-blue-300 focus:outline-none py-1">
-            <span class="text-base">📚</span>
-            <span class="text-[9px] sm:text-[10px] font-medium mt-0.5 whitespace-nowrap">내신대비</span>
-        </button>
-
-        <!-- 7. 급여정산 -->
-        <button onclick="switchTab('payroll', '급여 관리 시스템', 'https://realtorgi.github.io/payroll')" class="flex-1 min-w-[50px] flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-blue-900 dark:hover:text-blue-300 focus:outline-none py-1">
-            <span class="text-base">💰</span>
-            <span class="text-[9px] sm:text-[10px] font-medium mt-0.5 whitespace-nowrap">급여정산</span>
-        </button>
+    <!-- 하단 고정 네비게이션 바 -->
+    <nav id="bottom-nav" class="bg-white dark:bg-[#131B2E] border-t border-slate-200 dark:border-slate-800 h-16 flex items-center px-2 sm:px-6 z-20 transition-colors duration-200 overflow-x-auto no-scrollbar justify-between lg:justify-center lg:space-x-6">
+        <!-- JavaScript로 하단 빠른 이동 메뉴 렌더링 -->
     </nav>
 
+    <!-- 모달 1: 부서 수정 / 신설 / 하위 팀 추가 모달 -->
+    <div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+        <div class="bg-white dark:bg-[#161F33] rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white" id="modal-title">조직 개편 및 관리</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl leading-none">&times;</button>
+            </div>
+            
+            <div class="space-y-4 text-xs" id="modal-form-content">
+                <!-- 동적 폼 삽입 -->
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-2">
+                <button onclick="closeModal()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition">취소</button>
+                <button onclick="saveReorg()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold shadow-sm transition">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달 2: 부서 삭제 확인 모달 (confirm() 대체) -->
+    <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+        <div class="bg-white dark:bg-[#161F33] rounded-2xl w-full max-w-sm p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white mb-2">부서 폐지(삭제) 확인</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-5" id="confirm-msg">
+                정말로 이 부서를 삭제하시겠습니까? 소속된 하위 팀과 링크가 모두 삭제됩니다.
+            </p>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeConfirmModal()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">취소</button>
+                <button id="confirm-yes-btn" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition">삭제 실행</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 알림창 (alert() 대체) -->
+    <div id="toast-box" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+        <span id="toast-msg">알림 메시지</span>
+    </div>
+
     <script>
+        // 기본 CEO 사진 경로 (GitHub 같은 폴더에 ceo.jpg 로 올리시면 자동 인식됩니다)
+        const DEFAULT_CEO_FILE = "./ceo.jpg";
+
+        // 초기 5대 부서 데이터 (한글/영문 듀얼 지원)
+        const defaultDepartments = [
+            {
+                id: 'dept1',
+                name: '학사운영팀',
+                engName: '(Academic Operations)',
+                manager: '서연 매니저',
+                engManager: 'Manager Seoyeon',
+                bannerColor: 'bg-[#3B66B8]',
+                avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
+                teams: [
+                    { id: 't1', name: '시간표 시스템', engName: 'Timetable System', url: 'https://realtorgi.github.io/timetable' },
+                    { id: 't2', name: '수업 일정/진도', engName: 'Class Schedule & Progress', url: 'https://realtorgi.github.io/classschedule' },
+                    { id: 't3', name: '학생성적 및 학습관리', engName: 'Student Grades & Learning', url: '' }
+                ]
+            },
+            {
+                id: 'dept2',
+                name: '과제관리팀',
+                engName: '(Homework Management)',
+                manager: '지훈 매니저',
+                engManager: 'Manager Jihun',
+                bannerColor: 'bg-[#354B75]',
+                avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200',
+                teams: [
+                    { id: 't4', name: '숙제 관리', engName: 'Homework Tracking', url: 'https://realtorgi.github.io/homework' }
+                ]
+            },
+            {
+                id: 'dept3',
+                name: '데이터분석팀',
+                engName: '(Data Analytics)',
+                manager: '알렉스 매니저',
+                engManager: 'Manager Alex',
+                bannerColor: 'bg-[#5B478A]',
+                avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=200',
+                teams: [
+                    { id: 't5', name: '리뷰/AI 시험 분석', engName: 'Review & AI Exam Analysis', url: 'https://realtorgi.github.io/review' },
+                    { id: 't6', name: '패턴/오답 분석', engName: 'Pattern & Error Analytics', url: 'https://realtorgi.github.io/pattern' }
+                ]
+            },
+            {
+                id: 'dept4',
+                name: '내신전략팀',
+                engName: '(Test Prep Strategy)',
+                manager: '수진 매니저',
+                engManager: 'Manager Sujin',
+                bannerColor: 'bg-[#2C7A7B]',
+                avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=200',
+                teams: [
+                    { id: 't7', name: '내신대비', engName: 'School Exam Prep', url: 'https://realtorgi.github.io/testprep' }
+                ]
+            },
+            {
+                id: 'dept5',
+                name: '재무경영팀',
+                engName: '(Finance & Management)',
+                manager: '현우 매니저',
+                engManager: 'Manager Hyunwoo',
+                bannerColor: 'bg-[#9B4D59]',
+                avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+                teams: [
+                    { id: 't8', name: '급여 관리', engName: 'Payroll & Settlement', url: 'https://realtorgi.github.io/payroll' }
+                ]
+            }
+        ];
+
+        let departments = [];
+        let isEditMode = false;
+        let currentLang = 'ko'; // 'ko' 또는 'en'
+        let activeDeptId = null;
+        let modalAction = null;
+        let toastTimer = null;
+
+        // 원장님 사진 클릭 시 파일 선택창 열기
+        function triggerCeoPhotoUpload() {
+            document.getElementById('ceo-photo-input').click();
+        }
+
+        // 선택한 원장님 실제 사진을 원형 프레임에 맞게 리사이징 후 저장
+        function handleCeoPhotoSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const size = 240;
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+
+                    // 얼굴 위주 중앙 크롭
+                    const minSide = Math.min(img.width, img.height);
+                    const sx = (img.width - minSide) / 2;
+                    const sy = Math.max(0, (img.height - minSide) * 0.25);
+
+                    ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+                    localStorage.setItem('sea_ceo_photo', compressedDataUrl);
+                    document.getElementById('ceo-header-img').src = compressedDataUrl;
+                    document.getElementById('ceo-main-img').src = compressedDataUrl;
+                    showToast(currentLang === 'ko' ? '지남 원장님 실제 사진이 적용되었습니다.' : 'CEO profile photo updated.');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 한/영 언어 전환
+        function toggleLanguage() {
+            currentLang = currentLang === 'ko' ? 'en' : 'ko';
+            localStorage.setItem('sea_lang', currentLang);
+            applyLanguageUI();
+            renderAll();
+        }
+
+        function applyLanguageUI() {
+            const isEn = currentLang === 'en';
+            document.getElementById('lang-btn').innerText = isEn ? '한국어' : 'ENG';
+            document.getElementById('current-system-title').innerText = isEn ? 'Enterprise Management Portal' : '통합 관리 포털';
+            document.getElementById('header-ceo-name').innerText = isEn ? 'Director Gi Nam' : '지남 원장님';
+            document.getElementById('main-ceo-name').innerText = isEn ? 'Director Gi Nam' : '지남 원장님';
+            document.getElementById('back-btn-label').innerText = isEn ? '← Org Chart' : '← 조직도';
+            document.getElementById('edit-btn-label').innerText = isEditMode
+                ? (isEn ? 'Done' : '개편 완료')
+                : (isEn ? 'Reorganize' : '조직 개편');
+        }
+
+        // 커스텀 토스트 메시지
+        function showToast(msg) {
+            const box = document.getElementById('toast-box');
+            document.getElementById('toast-msg').innerText = msg;
+            box.classList.remove('hidden');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => box.classList.add('hidden'), 2600);
+        }
+
+        // 초기 실행
+        window.addEventListener('DOMContentLoaded', () => {
+            // 저장된 원장님 실제 사진이 있으면 우선 로드, 없으면 ./ceo.jpg 로드
+            const savedCeoPhoto = localStorage.getItem('sea_ceo_photo');
+            const initialPhoto = savedCeoPhoto || DEFAULT_CEO_FILE;
+            document.getElementById('ceo-header-img').src = initialPhoto;
+            document.getElementById('ceo-main-img').src = initialPhoto;
+
+            const savedLang = localStorage.getItem('sea_lang');
+            if (savedLang === 'en' || savedLang === 'ko') {
+                currentLang = savedLang;
+            }
+
+            const savedData = localStorage.getItem('sea_departments_v3');
+            if (savedData) {
+                try {
+                    departments = JSON.parse(savedData);
+                } catch (e) {
+                    departments = JSON.parse(JSON.stringify(defaultDepartments));
+                }
+            } else {
+                departments = JSON.parse(JSON.stringify(defaultDepartments));
+            }
+
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('dark-icon').innerText = '🌙';
+                document.getElementById('dark-label').innerText = '다크';
+            } else {
+                document.documentElement.classList.add('dark');
+                document.getElementById('dark-icon').innerText = '☀️';
+                document.getElementById('dark-label').innerText = '라이트';
+            }
+
+            applyLanguageUI();
+            renderAll();
+        });
+
+        function saveToStorage() {
+            localStorage.setItem('sea_departments_v3', JSON.stringify(departments));
+            renderAll();
+        }
+
+        function renderAll() {
+            renderDepartments();
+            renderBottomNav();
+        }
+
+        // 조직도 부서 카드 렌더링
+        function renderDepartments() {
+            const container = document.getElementById('departments-container');
+            container.innerHTML = '';
+
+            // 부서 수에 맞춰 PC 그리드 열 개수 조정 (기본 5개 부서일 때 5열 일렬 배치)
+            const totalItems = isEditMode ? departments.length + 1 : departments.length;
+            const gridColsClass = totalItems <= 1 ? 'lg:grid-cols-1 max-w-xs mx-auto'
+                                : totalItems === 2 ? 'lg:grid-cols-2 max-w-2xl mx-auto'
+                                : totalItems === 3 ? 'lg:grid-cols-3 max-w-4xl mx-auto'
+                                : totalItems === 4 ? 'lg:grid-cols-4 max-w-6xl mx-auto'
+                                : 'lg:grid-cols-5';
+            container.className = `grid grid-cols-1 md:grid-cols-2 ${gridColsClass} gap-5 relative`;
+
+            // 부서가 1개 이하면 가로 연결선 숨김
+            const bridgeH = document.getElementById('org-bridge-h');
+            if (totalItems <= 1) {
+                bridgeH.classList.add('lg:hidden');
+            } else {
+                bridgeH.classList.remove('lg:hidden');
+            }
+
+            departments.forEach((dept) => {
+                const isEn = currentLang === 'en';
+                const displayDeptName = isEn ? (dept.engName ? dept.engName.replace(/[()]/g, '') : dept.name) : dept.name;
+                const displaySubName = isEn ? dept.name : (dept.engName || '');
+                const displayManager = isEn ? (dept.engManager || dept.manager) : dept.manager;
+
+                const deptCard = document.createElement('div');
+                deptCard.className = 'relative flex flex-col bg-white dark:bg-[#1E2638] rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-md overflow-hidden transition duration-200 w-full';
+
+                const teamsHtml = dept.teams.map(team => {
+                    const displayTeamName = isEn ? (team.engName || team.name) : team.name;
+                    return `
+                    <div class="flex items-center justify-between group">
+                        <button onclick="${isEditMode ? '' : `switchTab('${team.id}', '${displayTeamName}', '${team.url || ''}')`}" 
+                                class="flex-1 text-left py-2 px-2.5 rounded-lg text-slate-700 dark:text-slate-200 ${!isEditMode ? 'hover:bg-slate-100 dark:hover:bg-slate-700/60 active:scale-[0.99] cursor-pointer' : ''} transition flex items-center space-x-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0"></span>
+                            <span class="text-xs font-medium tracking-tight truncate">${displayTeamName}</span>
+                        </button>
+                        ${isEditMode ? `
+                            <button onclick="deleteTeam('${dept.id}', '${team.id}')" class="ml-1 p-1.5 text-rose-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition text-xs" title="팀 삭제">
+                                ✕
+                            </button>
+                        ` : ''}
+                    </div>
+                `;}).join('');
+
+                deptCard.innerHTML = `
+                    <!-- PC 연결 수직선 -->
+                    <div class="hidden lg:block org-line-v-down"></div>
+
+                    <!-- 상단 밝은 부서 헤더 -->
+                    <div class="bg-slate-100 dark:bg-[#E2E8F0] px-4 py-3.5 text-center relative">
+                        <h3 class="text-sm font-extrabold text-slate-900 tracking-tight truncate">${displayDeptName}</h3>
+                        <p class="text-[10px] font-semibold text-slate-600 tracking-tight truncate whitespace-nowrap mt-0.5">
+                            ${displaySubName}
+                        </p>
+                        <!-- 편집 버튼 -->
+                        <button onclick="openEditModal('${dept.id}')" class="${isEditMode ? 'flex' : 'hidden'} absolute right-2.5 top-2.5 w-6 h-6 rounded-md bg-slate-900/10 hover:bg-slate-900/20 text-slate-800 items-center justify-center text-xs transition" title="부서 설정">
+                            ✏️
+                        </button>
+                    </div>
+
+                    <!-- 중단 컬러 매니저 프로필 배너 -->
+                    <div class="${dept.bannerColor || 'bg-[#3B66B8]'} px-4 py-4 flex flex-col items-center text-center text-white">
+                        <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-white/80 shadow-md mb-2 bg-slate-800">
+                            <img src="${dept.avatar}" class="w-full h-full object-cover object-top" alt="${displayManager}" onerror="this.src='https://placehold.co/120x120/334155/ffffff?text=M'">
+                        </div>
+                        <span class="text-xs font-bold tracking-tight">${displayManager}</span>
+                    </div>
+
+                    <!-- 하단 업무(팀) 리스트 영역 -->
+                    <div class="p-3.5 flex-1 flex flex-col justify-between bg-white dark:bg-[#242E42]">
+                        <div class="space-y-1">
+                            ${teamsHtml || `<p class="text-[11px] text-slate-400 text-center py-3">${isEn ? 'No tasks assigned.' : '등록된 업무가 없습니다.'}</p>`}
+                        </div>
+
+                        <!-- 편집 모드 시 하위 팀 추가 버튼 -->
+                        <button onclick="openAddTeamModal('${dept.id}')" class="${isEditMode ? 'block' : 'hidden'} mt-3 w-full py-2 border border-dashed border-slate-300 dark:border-slate-600 hover:border-indigo-400 rounded-xl text-[11px] font-semibold text-slate-500 dark:text-slate-300 hover:text-indigo-400 transition">
+                            ${isEn ? '+ Add Sub-team / Task' : '+ 하위 팀(업무) 추가'}
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(deptCard);
+            });
+
+            // 편집 모드일 때 새 부서 추가 카드 표시
+            if (isEditMode) {
+                const isEn = currentLang === 'en';
+                const addCard = document.createElement('div');
+                addCard.onclick = openAddDeptModal;
+                addCard.className = 'relative flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl hover:border-indigo-500 dark:hover:border-indigo-400 hover:bg-white/50 dark:hover:bg-slate-800/40 cursor-pointer min-h-[220px] transition';
+                addCard.innerHTML = `
+                    <div class="hidden lg:block org-line-v-down"></div>
+                    <div class="w-10 h-10 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-lg font-bold mb-2">+</div>
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300">${isEn ? 'New Department' : '새 부서 신설'}</span>
+                    <span class="text-[10px] text-slate-400 mt-1">${isEn ? 'Add manager & division' : '매니저 및 부서 추가'}</span>
+                `;
+                container.appendChild(addCard);
+            }
+        }
+
+        // 하단 네비게이션 렌더링
+        function renderBottomNav() {
+            const nav = document.getElementById('bottom-nav');
+            const isEn = currentLang === 'en';
+            let html = `
+                <button onclick="goHome()" class="flex flex-col items-center justify-center text-indigo-600 dark:text-indigo-400 py-1 px-3 shrink-0 focus:outline-none">
+                    <span class="text-base">🏠</span>
+                    <span class="text-[10px] font-bold mt-0.5">${isEn ? 'Home' : '홈'}</span>
+                </button>
+            `;
+
+            departments.forEach(dept => {
+                dept.teams.forEach(team => {
+                    const label = isEn ? (team.engName || team.name) : team.name;
+                    html += `
+                        <button onclick="switchTab('${team.id}', '${label}', '${team.url || ''}')" class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white py-1 px-2.5 shrink-0 transition">
+                            <span class="text-xs font-semibold tracking-tight whitespace-nowrap max-w-[96px] truncate">${label}</span>
+                        </button>
+                    `;
+                });
+            });
+
+            nav.innerHTML = html;
+        }
+
+        // 시스템(iframe) 열기
         function switchTab(tabId, title, url) {
+            if (!url || url.trim() === '') {
+                showToast(`'${title}' 시스템의 연결 URL이 아직 설정되지 않았습니다.`);
+                return;
+            }
             document.getElementById('current-system-title').innerText = title;
             document.getElementById('view-home').classList.add('hidden');
             document.getElementById('view-iframe').classList.remove('hidden');
-            // 상단에 '메인으로' 돌아가는 버튼 활성화
-            document.getElementById('back-btn').classList.remove('hidden');
-            document.getElementById('back-btn').classList.add('flex');
             
+            document.getElementById('edit-mode-btn').classList.add('hidden');
+            const backBtn = document.getElementById('back-btn');
+            backBtn.classList.remove('hidden');
+            backBtn.classList.add('flex');
+
             const iframe = document.getElementById('active-iframe');
             if (iframe.src !== url) {
                 iframe.src = url;
             }
         }
 
+        // 조직도 홈으로 복귀
         function goHome() {
-            document.getElementById('current-system-title').innerText = '통합 대시보드';
+            document.getElementById('current-system-title').innerText = '통합 관리 포털';
             document.getElementById('view-iframe').classList.add('hidden');
             document.getElementById('view-home').classList.remove('hidden');
-            // 홈 화면에서는 '메인으로' 버튼 숨기기
-            document.getElementById('back-btn').classList.remove('flex');
-            document.getElementById('back-btn').classList.add('hidden');
+            
+            const backBtn = document.getElementById('back-btn');
+            backBtn.classList.remove('flex');
+            backBtn.classList.add('hidden');
+            document.getElementById('edit-mode-btn').classList.remove('hidden');
             document.getElementById('active-iframe').src = '';
         }
 
-        // 다크 모드 토글 기능
+        // 조직 개편 모드 토글
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('edit-mode-btn');
+            const label = document.getElementById('edit-btn-label');
+
+            if (isEditMode) {
+                label.innerText = '개편 완료';
+                btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600', 'hover:bg-indigo-500');
+                btn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-200');
+                showToast('조직 개편 모드입니다. 부서와 팀을 추가·삭제할 수 있습니다.');
+            } else {
+                label.innerText = '조직 개편';
+                btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600', 'hover:bg-indigo-500');
+                btn.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-200');
+                saveToStorage();
+                showToast('조직 구성이 저장되었습니다.');
+            }
+            renderDepartments();
+        }
+
+        // 부서 수정 모달
+        function openEditModal(deptId) {
+            activeDeptId = deptId;
+            modalAction = 'EDIT_DEPT';
+            const dept = departments.find(d => d.id === deptId);
+            if (!dept) return;
+
+            document.getElementById('modal-title').innerText = `${dept.name} 정보 수정`;
+            document.getElementById('modal-form-content').innerHTML = `
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">부서명</label>
+                    <input type="text" id="field-dept-name" value="${dept.name}" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">영문 표기 (한 줄)</label>
+                    <input type="text" id="field-dept-eng" value="${dept.engName || ''}" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">담당 매니저 이름</label>
+                    <input type="text" id="field-dept-manager" value="${dept.manager}" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                </div>
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <button onclick="resetDefaultOrg()" class="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline">초기 5대 부서 복원</button>
+                    <button onclick="confirmDeleteDepartment('${deptId}')" class="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-bold rounded-lg transition">부서 폐지(삭제)</button>
+                </div>
+            `;
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        // 새 부서 신설 모달
+        function openAddDeptModal() {
+            activeDeptId = null;
+            modalAction = 'ADD_DEPT';
+            document.getElementById('modal-title').innerText = '새 경영 부서 신설';
+            document.getElementById('modal-form-content').innerHTML = `
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">부서명 *</label>
+                    <input type="text" id="field-dept-name" placeholder="예: 입시컨설팅팀" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">영문 표기 (한 줄)</label>
+                    <input type="text" id="field-dept-eng" placeholder="예: (Admissions Consulting)" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">담당 매니저 이름 *</label>
+                    <input type="text" id="field-dept-manager" placeholder="예: 민준 매니저" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">매니저 배너 컬러</label>
+                    <select id="field-dept-color" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                        <option value="bg-[#3B66B8]">코발트 블루</option>
+                        <option value="bg-[#354B75]">딥 네이비</option>
+                        <option value="bg-[#5B478A]">로열 퍼플</option>
+                        <option value="bg-[#2C7A7B]">틸 그린</option>
+                        <option value="bg-[#9B4D59]">버건디 로즈</option>
+                    </select>
+                </div>
+            `;
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        // 하위 팀(업무) 추가 모달
+        function openAddTeamModal(deptId) {
+            activeDeptId = deptId;
+            modalAction = 'ADD_TEAM';
+            const dept = departments.find(d => d.id === deptId);
+            document.getElementById('modal-title').innerText = `${dept ? dept.name : ''} · 하위 업무 추가`;
+            document.getElementById('modal-form-content').innerHTML = `
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">하위 팀(업무) 이름 *</label>
+                    <input type="text" id="field-team-name" placeholder="예: 학부모 상담 일지" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">연결 시스템 URL</label>
+                    <input type="url" id="field-team-url" placeholder="https://realtorgi.github.io/..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                </div>
+            `;
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        // 모달 저장 처리
+        function saveReorg() {
+            if (modalAction === 'ADD_DEPT') {
+                const name = document.getElementById('field-dept-name').value.trim();
+                const engName = document.getElementById('field-dept-eng').value.trim();
+                const manager = document.getElementById('field-dept-manager').value.trim();
+                const bannerColor = document.getElementById('field-dept-color').value;
+
+                if (!name || !manager) {
+                    showToast('부서명과 매니저 이름을 모두 입력해 주세요.');
+                    return;
+                }
+
+                departments.push({
+                    id: 'dept_' + Date.now(),
+                    name,
+                    engName: engName ? (engName.startsWith('(') ? engName : `(${engName})`) : '',
+                    manager,
+                    bannerColor,
+                    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+                    teams: []
+                });
+                showToast(`'${name}' 부서가 신설되었습니다.`);
+            } else if (modalAction === 'EDIT_DEPT') {
+                const name = document.getElementById('field-dept-name').value.trim();
+                const engName = document.getElementById('field-dept-eng').value.trim();
+                const manager = document.getElementById('field-dept-manager').value.trim();
+
+                if (!name || !manager) {
+                    showToast('부서명과 매니저 이름을 입력해 주세요.');
+                    return;
+                }
+
+                const idx = departments.findIndex(d => d.id === activeDeptId);
+                if (idx !== -1) {
+                    departments[idx].name = name;
+                    departments[idx].engName = engName;
+                    departments[idx].manager = manager;
+                }
+                showToast('부서 정보가 수정되었습니다.');
+            } else if (modalAction === 'ADD_TEAM') {
+                const name = document.getElementById('field-team-name').value.trim();
+                const url = document.getElementById('field-team-url').value.trim();
+
+                if (!name) {
+                    showToast('추가할 업무(팀) 이름을 입력해 주세요.');
+                    return;
+                }
+
+                const idx = departments.findIndex(d => d.id === activeDeptId);
+                if (idx !== -1) {
+                    departments[idx].teams.push({
+                        id: 'team_' + Date.now(),
+                        name,
+                        url
+                    });
+                }
+                showToast(`'${name}' 업무가 추가되었습니다.`);
+            }
+
+            saveToStorage();
+            closeModal();
+        }
+
+        // 하위 팀 삭제
+        function deleteTeam(deptId, teamId) {
+            const dept = departments.find(d => d.id === deptId);
+            if (!dept) return;
+            dept.teams = dept.teams.filter(t => t.id !== teamId);
+            saveToStorage();
+            showToast('하위 업무가 삭제되었습니다.');
+        }
+
+        // 부서 삭제 확인 모달 열기
+        function confirmDeleteDepartment(deptId) {
+            const dept = departments.find(d => d.id === deptId);
+            if (!dept) return;
+            closeModal();
+            document.getElementById('confirm-msg').innerText = `'${dept.name}' 부서를 폐지(삭제)하시겠습니까? 소속된 하위 업무와 연결 주소가 모두 삭제됩니다.`;
+            document.getElementById('confirm-yes-btn').onclick = () => {
+                departments = departments.filter(d => d.id !== deptId);
+                saveToStorage();
+                closeConfirmModal();
+                showToast(`'${dept.name}' 부서가 삭제되었습니다.`);
+            };
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+        }
+
+        function resetDefaultOrg() {
+            departments = JSON.parse(JSON.stringify(defaultDepartments));
+            saveToStorage();
+            closeModal();
+            showToast('초기 5대 부서 구성으로 복원되었습니다.');
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+        }
+
+        // 다크/라이트 모드 토글
         function toggleDarkMode() {
             const html = document.documentElement;
-            const darkIcon = document.getElementById('dark-icon');
-            const darkText = document.getElementById('dark-text');
+            const icon = document.getElementById('dark-icon');
+            const label = document.getElementById('dark-label');
 
             if (html.classList.contains('dark')) {
                 html.classList.remove('dark');
-                darkIcon.innerText = '🌙';
-                darkText.innerText = '다크';
+                icon.innerText = '🌙';
+                label.innerText = '다크';
                 localStorage.setItem('theme', 'light');
             } else {
                 html.classList.add('dark');
-                darkIcon.innerText = '☀️';
-                darkText.innerText = '라이트';
+                icon.innerText = '☀️';
+                label.innerText = '라이트';
                 localStorage.setItem('theme', 'dark');
             }
         }
-
-        // 페이지 로드 시 기존 사용자 테마 설정 불러오기
-        window.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-                document.getElementById('dark-icon').innerText = '☀️';
-                document.getElementById('dark-text').innerText = '라이트';
-            }
-        });
     </script>
 </body>
 </html>
