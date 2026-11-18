@@ -19,7 +19,6 @@
                 }
             }
         }
-        // 이미지 로드보다 먼저 실행될 수 있도록 head에서 폴백 함수 선제 정의
         const FALLBACK_CEO_AVATAR = "https://placehold.co/200x200/1e293b/ffffff?text=Director+Gi+Nam";
         function handleCeoImgError(imgEl) {
             if (imgEl && imgEl.src !== FALLBACK_CEO_AVATAR) {
@@ -37,8 +36,13 @@
             width: 100%;
             height: calc(100vh - 124px);
             border: none;
+            transition: filter 0.25s ease, background-color 0.25s ease;
         }
-        /* PC 전용 조직도 연결선 */
+        /* 다크 모드 시 자체 다크모드 미지원 페이지용 수동 강제 반전 필터 (기본 OFF) */
+        html.dark .system-frame.iframe-force-invert {
+            filter: invert(0.91) hue-rotate(180deg) contrast(0.95);
+            background-color: #0B111E;
+        }
         @media (min-width: 1024px) {
             .org-line-h {
                 height: 1.5px;
@@ -81,7 +85,6 @@
     </style>
 </head>
 <body class="bg-slate-100 dark:bg-[#0B111E] text-slate-800 dark:text-slate-200 flex flex-col h-screen overflow-hidden transition-colors duration-200">
-
     <!-- 상단 프로페셔널 헤더 -->
     <header class="bg-white dark:bg-[#131B2E] border-b border-slate-200 dark:border-slate-800/90 shadow-sm z-20 flex justify-between items-center px-4 sm:px-6 h-14 transition-colors duration-200">
         <!-- 로고 및 서비스 명칭 -->
@@ -101,8 +104,21 @@
         </div>
 
         <!-- 우측 상단: 컨트롤러 & 지남 원장님 프로필 -->
-        <div class="flex items-center space-x-2.5 sm:space-x-4">
-            <!-- 한국어/영어 언어 전환 버튼 -->
+        <div class="flex items-center space-x-2 sm:space-x-3.5">
+            <!-- AI 자동 스캔 상태 표시 -->
+            <button onclick="triggerAiHomeworkScanNow()" title="클릭하여 AI 매니저 숙제 자동 감지 수동 실행" class="hidden sm:flex items-center space-x-1.5 text-xs bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/70 text-emerald-700 dark:text-emerald-300 px-2.5 py-1.5 rounded-lg font-bold border border-emerald-200 dark:border-emerald-700/60 transition">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>AI 숙제 자동감지 ON</span>
+            </button>
+
+            <!-- 통합 보고함 버튼 -->
+            <button onclick="requestReportAuth()" id="all-reports-btn" class="text-xs bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/70 text-indigo-700 dark:text-indigo-300 px-2.5 sm:px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1.5 transition border border-indigo-200 dark:border-indigo-700/60 shadow-xs">
+                <span>🔒</span>
+                <span id="reports-btn-label">통합 보고함</span>
+                <span id="total-unread-badge" class="hidden ml-1 px-1.5 py-0.2 text-[10px] font-extrabold bg-rose-500 text-white rounded-full">0</span>
+            </button>
+
+            <!-- 언어 전환 버튼 -->
             <button onclick="toggleLanguage()" id="lang-btn" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-2.5 py-1.5 rounded-lg font-bold transition border border-slate-200 dark:border-slate-700">
                 ENG
             </button>
@@ -118,7 +134,7 @@
                 <span id="back-btn-label">← 조직도</span>
             </button>
 
-            <!-- 원장님 프로필 카드 (클릭 시 실제 사진 파일 업로드 가능) -->
+            <!-- 원장님 프로필 카드 -->
             <div onclick="triggerCeoPhotoUpload()" title="클릭하여 원장님 실제 사진 등록/변경" class="flex items-center space-x-2 pl-2 sm:pl-3 border-l border-slate-200 dark:border-slate-800 cursor-pointer group">
                 <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-700 border border-indigo-400/50 shrink-0 group-hover:ring-2 group-hover:ring-indigo-400 transition">
                     <img id="ceo-header-img" src="./ceo.jpg" class="w-full h-full object-cover object-top" alt="지남 원장님" onerror="handleCeoImgError(this)">
@@ -128,11 +144,10 @@
                     <span class="block text-[10px] text-slate-400 font-semibold">(CEO)</span>
                 </div>
             </div>
-            <!-- 숨겨진 원장님 사진 업로드 인풋 -->
             <input type="file" id="ceo-photo-input" accept="image/*" class="hidden" onchange="handleCeoPhotoSelected(event)">
 
             <!-- 다크/라이트 모드 토글 -->
-            <button onclick="toggleDarkMode()" class="px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center space-x-1 transition">
+            <button onclick="toggleDarkMode()" class="px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center space-x-1 transition">
                 <span id="dark-icon">☀️</span>
                 <span id="dark-label" class="hidden sm:inline">라이트</span>
             </button>
@@ -145,7 +160,7 @@
         <!-- 1. 메인 조직도 (홈) -->
         <div id="view-home" class="view-section p-5 sm:p-8 overflow-y-auto h-full flex flex-col items-center">
             
-            <!-- 최상단 CEO 헤드 카드 (시안 이미지 디자인 반영) -->
+            <!-- 최상단 CEO 헤드 카드 -->
             <div class="w-full max-w-[260px] flex flex-col items-center text-center mb-6 relative z-10">
                 <div class="bg-white dark:bg-[#1A243B] rounded-2xl p-5 shadow-lg border border-slate-200 dark:border-indigo-500/30 w-full hover:border-indigo-400 transition duration-200">
                     <div onclick="triggerCeoPhotoUpload()" title="클릭하여 원장님 실제 사진 등록/변경" class="relative w-20 h-20 rounded-full mx-auto overflow-hidden border-2 border-indigo-400/70 shadow-md mb-3 bg-slate-800 cursor-pointer group">
@@ -157,45 +172,47 @@
                     <h2 id="main-ceo-name" class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">지남 원장님</h2>
                     <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">(CEO)</p>
                 </div>
-                <!-- PC 연결 수직선 -->
                 <div class="hidden lg:block org-line-v-center"></div>
             </div>
 
-            <!-- 5대 부서 리스트 영역 -->
-            <div class="w-full max-w-[1400px] relative pb-24">
-                <!-- PC 연결 가로선 (1024px 이상 PC 화면에서 5개 부서를 일렬로 연결) -->
+            <!-- 부서 리스트 영역 (총 6개 부서: 학사, 과제, 데이터분석, 내신전략, 학부모상담, 재무경영) -->
+            <div class="w-full max-w-[1500px] relative pb-24">
                 <div id="org-bridge-h" class="hidden lg:block org-line-h"></div>
-                
-                <!-- 부서 그리드: 모바일(1열) / 태블릿(2열) / PC(5열 일렬 정렬) -->
-                <div id="departments-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 relative">
-                    <!-- JavaScript로 부서 카드 렌더링 -->
+                <div id="departments-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-5 relative">
+                    <!-- JavaScript로 동적 렌더링 -->
                 </div>
             </div>
         </div>
 
         <!-- 2. 동적 시스템 로드용 iframe 영역 -->
-        <div id="view-iframe" class="hidden h-full bg-white dark:bg-[#0B111E]">
+        <div id="view-iframe" class="hidden h-full bg-white dark:bg-[#0B111E] relative transition-colors duration-200">
+            <!-- 외부 시스템 테마 동기화 안내/수동 보정 바 -->
+            <div id="iframe-theme-bar" class="hidden dark:flex items-center justify-between px-4 py-1.5 bg-[#131B2E] border-b border-slate-800 text-[11px] text-slate-400">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>다크 모드 테마 동기화 연결됨 (하위 시스템 다크 모드 자동 적용)</span>
+                </div>
+                <button onclick="toggleIframeForceDark()" id="iframe-force-toggle-btn" class="px-2.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold transition">
+                    강제 다크 반전: OFF
+                </button>
+            </div>
             <iframe id="active-iframe" class="system-frame" src=""></iframe>
         </div>
     </main>
 
     <!-- 하단 고정 네비게이션 바 -->
     <nav id="bottom-nav" class="bg-white dark:bg-[#131B2E] border-t border-slate-200 dark:border-slate-800 h-16 flex items-center px-2 sm:px-6 z-20 transition-colors duration-200 overflow-x-auto no-scrollbar justify-between lg:justify-center lg:space-x-6">
-        <!-- JavaScript로 하단 빠른 이동 메뉴 렌더링 -->
+        <!-- JavaScript로 렌더링 -->
     </nav>
 
     <!-- 모달 1: 부서 수정 / 신설 / 하위 팀 추가 모달 -->
     <div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-        <div class="bg-white dark:bg-[#161F33] rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+        <div class="bg-white dark:bg-[#161F33] text-slate-800 dark:text-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
                 <h3 class="text-sm font-extrabold text-slate-900 dark:text-white" id="modal-title">조직 개편 및 관리</h3>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl leading-none">&times;</button>
             </div>
-            
-            <div class="space-y-4 text-xs" id="modal-form-content">
-                <!-- 동적 폼 삽입 -->
-            </div>
-
+            <div class="space-y-4 text-xs" id="modal-form-content"></div>
             <div class="mt-6 flex justify-end space-x-2">
                 <button onclick="closeModal()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition">취소</button>
                 <button onclick="saveReorg()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold shadow-sm transition">저장하기</button>
@@ -203,31 +220,130 @@
         </div>
     </div>
 
-    <!-- 모달 2: 부서 삭제 확인 모달 (confirm() 대체) -->
+    <!-- 모달 2: 부서 삭제 확인 모달 -->
     <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-        <div class="bg-white dark:bg-[#161F33] rounded-2xl w-full max-w-sm p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+        <div class="bg-white dark:bg-[#161F33] text-slate-800 dark:text-slate-200 rounded-2xl w-full max-w-sm p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
             <h3 class="text-sm font-extrabold text-slate-900 dark:text-white mb-2">부서 폐지(삭제) 확인</h3>
             <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-5" id="confirm-msg">
                 정말로 이 부서를 삭제하시겠습니까? 소속된 하위 팀과 링크가 모두 삭제됩니다.
             </p>
             <div class="flex justify-end space-x-2">
-                <button onclick="closeConfirmModal()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">취소</button>
+                <button onclick="closeConfirmModal()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition">취소</button>
                 <button id="confirm-yes-btn" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition">삭제 실행</button>
             </div>
         </div>
     </div>
 
-    <!-- 토스트 알림창 (alert() 대체) -->
+    <!-- 모달 2-2: 원장님 보고함 보안 비밀번호 인증 모달 -->
+    <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+        <div class="bg-white dark:bg-[#161F33] text-slate-800 dark:text-slate-200 rounded-2xl w-full max-w-sm p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center space-x-1.5">
+                    <span>🔐</span>
+                    <span id="auth-modal-title">원장님 보안 인증</span>
+                </h3>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl leading-none">&times;</button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4" id="auth-modal-desc">
+                보안을 위해 원장님 비밀번호를 입력해주세요.
+            </p>
+            <div class="space-y-3">
+                <input type="password" id="auth-password-input" placeholder="비밀번호 입력" class="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 p-3 rounded-xl text-sm text-center font-bold tracking-widest focus:outline-none focus:border-indigo-500" onkeydown="if(event.key==='Enter') verifyReportPassword()">
+                <div class="flex space-x-2 pt-1">
+                    <button onclick="closeAuthModal()" class="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition">취소</button>
+                    <button onclick="verifyReportPassword()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-sm">인증하기</button>
+                </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-center">
+                <button onclick="openChangePasswordPrompt()" class="text-[11px] text-indigo-500 dark:text-indigo-400 hover:underline">원장님 비밀번호 변경하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달 3: 부서별 & 통합 업무 보고함 모달 -->
+    <div id="report-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+        <div class="bg-white dark:bg-[#161F33] text-slate-800 dark:text-slate-200 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <!-- 모달 헤더 -->
+            <div class="px-6 py-4 bg-slate-50 dark:bg-[#1C263B] border-b border-slate-200 dark:border-slate-800 flex justify-between items-center shrink-0">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+                        <span>📋</span>
+                        <span id="report-modal-title">업무 보고함 및 원장님 결재</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" id="report-modal-subtitle">매니저 업무 보고 등록 및 CEO 실시간 피드백</p>
+                </div>
+                <button onclick="closeReportModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl leading-none">&times;</button>
+            </div>
+
+            <!-- 모달 바디 -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+                <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                    <h4 class="font-bold text-slate-800 dark:text-slate-200 flex items-center space-x-1.5">
+                        <span>🤖</span>
+                        <span id="form-section-title">AI 매니저 자동 보고 및 수동 등록</span>
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1" id="lbl-report-dept">보고 부서 / 매니저</label>
+                            <select id="report-dept-select" class="w-full bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 p-2.5 rounded-lg text-xs font-semibold">
+                                <!-- 동적 생성 -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1" id="lbl-report-type">보고 구분</label>
+                            <select id="report-type-select" class="w-full bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 p-2.5 rounded-lg text-xs font-semibold">
+                                <option value="[AI 자동감지] 중등부 23:00 숙제 미완료 보고">[AI 자동감지] 중등부 23:00 마감 미완료</option>
+                                <option value="[AI 자동감지] 고등부 24:00 숙제 미완료 보고">[AI 자동감지] 고등부 24:00 마감 미완료</option>
+                                <option value="일일 마감 보고 (Daily)">일일 마감 보고 (Daily)</option>
+                                <option value="긴급 결재 요청 (Urgent)">긴급 결재 요청 (Urgent)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <textarea id="report-content-input" rows="3" placeholder="보고할 주요 업무 내용, 미제출 학생 명단, 또는 원장님 결재 요청 사항을 입력하세요..." class="w-full bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-xs focus:outline-none focus:border-indigo-500"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button onclick="triggerAiHomeworkScanNow()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs transition flex items-center space-x-1">
+                            <span>⚡</span>
+                            <span>마감 시간대별 AI 자동 스캔 실행</span>
+                        </button>
+                        <button onclick="submitNewReport()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold shadow-sm transition flex items-center space-x-1.5">
+                            <span>📤</span>
+                            <span id="submit-report-label">원장님께 보고 올리기</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h4 class="font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
+                        <span class="flex items-center space-x-1.5">
+                            <span>📂</span>
+                            <span id="list-section-title">부서별 보고 & 원장님 피드백 내역</span>
+                        </span>
+                        <span id="report-count-badge" class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-[11px]">총 0건</span>
+                    </h4>
+                    <div id="report-list-container" class="space-y-3">
+                        <!-- 동적 렌더링 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-3 bg-slate-50 dark:bg-[#1C263B] border-t border-slate-200 dark:border-slate-800 flex justify-end shrink-0">
+                <button onclick="closeReportModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-300 dark:hover:bg-slate-700 transition">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 알림창 -->
     <div id="toast-box" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 flex items-center space-x-2">
         <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
         <span id="toast-msg">알림 메시지</span>
     </div>
 
     <script>
-        // 기본 CEO 사진 경로 (GitHub 같은 폴더에 ceo.jpg 로 올리시면 자동 인식됩니다)
         const DEFAULT_CEO_FILE = "./ceo.jpg";
 
-        // 초기 5대 부서 데이터 (한글/영문 듀얼 지원)
+        // 6대 부서 기본 데이터
         const defaultDepartments = [
             {
                 id: 'dept1',
@@ -281,6 +397,18 @@
                 ]
             },
             {
+                id: 'dept6',
+                name: '학부모상담팀',
+                engName: '(Parent Consulting)',
+                manager: '유진 매니저',
+                engManager: 'Manager Yujin',
+                bannerColor: 'bg-[#C05621]',
+                avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
+                teams: [
+                    { id: 't9', name: '상담 일지 관리', engName: 'Consultation Records', url: 'https://realtorgi.github.io/consulting' }
+                ]
+            },
+            {
                 id: 'dept5',
                 name: '재무경영팀',
                 engName: '(Finance & Management)',
@@ -295,18 +423,20 @@
         ];
 
         let departments = [];
+        let reports = [];
+        let currentReportFilterDeptId = 'ALL';
+        let pendingTargetDeptId = null;
         let isEditMode = false;
-        let currentLang = 'ko'; // 'ko' 또는 'en'
+        let currentLang = 'ko';
         let activeDeptId = null;
         let modalAction = null;
         let toastTimer = null;
+        let iframeForceDark = false; // 자체 다크모드 지원 시스템이 반전되어 라이트로 보이지 않도록 기본 OFF
 
-        // 원장님 사진 클릭 시 파일 선택창 열기
         function triggerCeoPhotoUpload() {
             document.getElementById('ceo-photo-input').click();
         }
 
-        // 선택한 원장님 실제 사진을 원형 프레임에 맞게 리사이징 후 저장
         function handleCeoPhotoSelected(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -321,7 +451,6 @@
                     canvas.height = size;
                     const ctx = canvas.getContext('2d');
 
-                    // 얼굴 위주 중앙 크롭
                     const minSide = Math.min(img.width, img.height);
                     const sx = (img.width - minSide) / 2;
                     const sy = Math.max(0, (img.height - minSide) * 0.25);
@@ -330,8 +459,10 @@
                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
                     localStorage.setItem('sea_ceo_photo', compressedDataUrl);
-                    document.getElementById('ceo-header-img').src = compressedDataUrl;
-                    document.getElementById('ceo-main-img').src = compressedDataUrl;
+                    const headerImg = document.getElementById('ceo-header-img');
+                    const mainImg = document.getElementById('ceo-main-img');
+                    if (headerImg) headerImg.src = compressedDataUrl;
+                    if (mainImg) mainImg.src = compressedDataUrl;
                     showToast(currentLang === 'ko' ? '지남 원장님 실제 사진이 적용되었습니다.' : 'CEO profile photo updated.');
                 };
                 img.src = e.target.result;
@@ -339,7 +470,6 @@
             reader.readAsDataURL(file);
         }
 
-        // 한/영 언어 전환
         function toggleLanguage() {
             currentLang = currentLang === 'ko' ? 'en' : 'ko';
             localStorage.setItem('sea_lang', currentLang);
@@ -349,39 +479,125 @@
 
         function applyLanguageUI() {
             const isEn = currentLang === 'en';
-            document.getElementById('lang-btn').innerText = isEn ? '한국어' : 'ENG';
-            document.getElementById('current-system-title').innerText = isEn ? 'Enterprise Management Portal' : '통합 관리 포털';
-            document.getElementById('header-ceo-name').innerText = isEn ? 'Director Gi Nam' : '지남 원장님';
-            document.getElementById('main-ceo-name').innerText = isEn ? 'Director Gi Nam' : '지남 원장님';
-            document.getElementById('back-btn-label').innerText = isEn ? '← Org Chart' : '← 조직도';
-            document.getElementById('edit-btn-label').innerText = isEditMode
-                ? (isEn ? 'Done' : '개편 완료')
-                : (isEn ? 'Reorganize' : '조직 개편');
+            const langBtn = document.getElementById('lang-btn');
+            const sysTitle = document.getElementById('current-system-title');
+            const hName = document.getElementById('header-ceo-name');
+            const mName = document.getElementById('main-ceo-name');
+            const bLabel = document.getElementById('back-btn-label');
+            const rLabel = document.getElementById('reports-btn-label');
+            const editLabel = document.getElementById('edit-btn-label');
+
+            if (langBtn) langBtn.innerText = isEn ? '한국어' : 'ENG';
+            if (sysTitle) sysTitle.innerText = isEn ? 'Enterprise Management Portal' : '통합 관리 포털';
+            if (hName) hName.innerText = isEn ? 'Director Gi Nam' : '지남 원장님';
+            if (mName) mName.innerText = isEn ? 'Director Gi Nam' : '지남 원장님';
+            if (bLabel) bLabel.innerText = isEn ? '← Org Chart' : '← 조직도';
+            if (rLabel) rLabel.innerText = isEn ? 'Reports' : '통합 보고함';
+            if (editLabel) {
+                editLabel.innerText = isEditMode
+                    ? (isEn ? 'Done' : '개편 완료')
+                    : (isEn ? 'Reorganize' : '조직 개편');
+            }
         }
 
-        // 커스텀 토스트 메시지
         function showToast(msg) {
             const box = document.getElementById('toast-box');
-            document.getElementById('toast-msg').innerText = msg;
-            box.classList.remove('hidden');
-            if (toastTimer) clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => box.classList.add('hidden'), 2600);
+            const msgEl = document.getElementById('toast-msg');
+            if (box && msgEl) {
+                msgEl.innerText = msg;
+                box.classList.remove('hidden');
+                if (toastTimer) clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => box.classList.add('hidden'), 2600);
+            }
         }
 
-        // 초기 실행
+        // 모든 부서 iframe과 현재 테마 상태를 일괄 동기화하는 핵심 함수
+        function syncIframeThemeState() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const iframe = document.getElementById('active-iframe');
+            const forceBtn = document.getElementById('iframe-force-toggle-btn');
+
+            if (iframe) {
+                iframe.style.backgroundColor = isDark ? '#0B111E' : '#FFFFFF';
+                iframe.style.colorScheme = isDark ? 'dark' : 'light';
+
+                // 수동 강제 반전 보정이 켜져 있을 때만 invert 필터 적용 (기본 OFF)
+                if (isDark && iframeForceDark) {
+                    iframe.classList.add('iframe-force-invert');
+                    iframe.style.height = 'calc(100vh - 152px)';
+                } else {
+                    iframe.classList.remove('iframe-force-invert');
+                    iframe.style.height = isDark ? 'calc(100vh - 152px)' : 'calc(100vh - 124px)';
+                }
+
+                // 동일 출처(Same-Origin)인 경우 하위 문서의 html.dark 클래스와 localStorage 직접 동기화
+                try {
+                    const doc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document);
+                    if (doc && doc.documentElement) {
+                        if (isDark) {
+                            doc.documentElement.classList.add('dark');
+                            doc.documentElement.setAttribute('data-theme', 'dark');
+                        } else {
+                            doc.documentElement.classList.remove('dark');
+                            doc.documentElement.setAttribute('data-theme', 'light');
+                        }
+                        if (iframe.contentWindow && iframe.contentWindow.localStorage) {
+                            iframe.contentWindow.localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                        }
+                    }
+                } catch (e) {
+                    // Cross-origin인 경우 아래 postMessage 및 URL 파라미터로 전달됨
+                }
+
+                // postMessage로 하위 iframe 페이지에 다중 표준 포맷으로 테마 상태 브로드캐스트
+                try {
+                    if (iframe.contentWindow) {
+                        const targetTheme = isDark ? 'dark' : 'light';
+                        iframe.contentWindow.postMessage({ type: 'SEA_THEME_SYNC', theme: targetTheme, isDark: isDark }, '*');
+                        iframe.contentWindow.postMessage({ type: 'SET_THEME', theme: targetTheme }, '*');
+                        iframe.contentWindow.postMessage({ theme: targetTheme }, '*');
+                    }
+                } catch (e) {}
+            }
+
+            if (forceBtn) {
+                forceBtn.innerText = iframeForceDark ? '강제 다크 반전: ON' : '강제 다크 반전: OFF';
+                if (iframeForceDark) {
+                    forceBtn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-500');
+                    forceBtn.classList.remove('bg-slate-800', 'text-slate-200', 'border-slate-700');
+                } else {
+                    forceBtn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-500');
+                    forceBtn.classList.add('bg-slate-800', 'text-slate-200', 'border-slate-700');
+                }
+            }
+        }
+
+        function toggleIframeForceDark() {
+            iframeForceDark = !iframeForceDark;
+            localStorage.setItem('sea_iframe_force_dark_v2', iframeForceDark ? 'true' : 'false');
+            syncIframeThemeState();
+            showToast(iframeForceDark ? '자체 다크모드가 없는 페이지를 강제 다크 반전합니다.' : '하위 시스템의 자체 다크 모드로 표시합니다.');
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
-            // 저장된 원장님 실제 사진이 있으면 우선 로드, 없으면 ./ceo.jpg 로드
             const savedCeoPhoto = localStorage.getItem('sea_ceo_photo');
             const initialPhoto = savedCeoPhoto || DEFAULT_CEO_FILE;
-            document.getElementById('ceo-header-img').src = initialPhoto;
-            document.getElementById('ceo-main-img').src = initialPhoto;
+            const headerImg = document.getElementById('ceo-header-img');
+            const mainImg = document.getElementById('ceo-main-img');
+            if (headerImg) headerImg.src = initialPhoto;
+            if (mainImg) mainImg.src = initialPhoto;
 
             const savedLang = localStorage.getItem('sea_lang');
             if (savedLang === 'en' || savedLang === 'ko') {
                 currentLang = savedLang;
             }
 
-            const savedData = localStorage.getItem('sea_departments_v3');
+            const savedForceDark = localStorage.getItem('sea_iframe_force_dark_v2');
+            if (savedForceDark !== null) {
+                iframeForceDark = savedForceDark === 'true';
+            }
+
+            const savedData = localStorage.getItem('sea_departments_v4');
             if (savedData) {
                 try {
                     departments = JSON.parse(savedData);
@@ -390,6 +606,29 @@
                 }
             } else {
                 departments = JSON.parse(JSON.stringify(defaultDepartments));
+            }
+
+            const savedReports = localStorage.getItem('sea_reports_v1');
+            if (savedReports) {
+                try {
+                    reports = JSON.parse(savedReports);
+                } catch (e) {
+                    reports = [];
+                }
+            } else {
+                reports = [
+                    {
+                        id: 'rep_1',
+                        deptId: 'dept2',
+                        manager: '지훈 매니저 (AI 과제관리)',
+                        type: '[AI 자동감지] 중등부 23:00 숙제 미완료 보고',
+                        content: '중등부 B반 밤 11시 마감 기준 숙제 미제출 학생 2명(김철수, 이영희) 자동 감지되었습니다. 대상 학생들에게 [오늘 밤 11시 마감 숙제 미완료 리마인드 톡]이 자동 발송되었습니다.',
+                        date: '2026-03-30 23:00',
+                        checked: false,
+                        feedback: ''
+                    }
+                ];
+                localStorage.setItem('sea_reports_v1', JSON.stringify(reports));
             }
 
             const savedTheme = localStorage.getItem('theme');
@@ -403,40 +642,338 @@
                 document.getElementById('dark-label').innerText = '라이트';
             }
 
+            // iframe 로드 완료 시 현재 테마 상태 즉시 동기화 (지연 스크립트 대응 포함)
+            const iframeEl = document.getElementById('active-iframe');
+            if (iframeEl) {
+                iframeEl.addEventListener('load', () => {
+                    syncIframeThemeState();
+                    setTimeout(syncIframeThemeState, 150);
+                    setTimeout(syncIframeThemeState, 500);
+                });
+            }
+
+            syncIframeThemeState();
             applyLanguageUI();
             renderAll();
         });
 
         function saveToStorage() {
-            localStorage.setItem('sea_departments_v3', JSON.stringify(departments));
+            localStorage.setItem('sea_departments_v4', JSON.stringify(departments));
+            renderAll();
+        }
+
+        function saveReportsToStorage() {
+            localStorage.setItem('sea_reports_v1', JSON.stringify(reports));
             renderAll();
         }
 
         function renderAll() {
             renderDepartments();
             renderBottomNav();
+            updateUnreadBadge();
         }
 
-        // 조직도 부서 카드 렌더링
+        function updateUnreadBadge() {
+            const unreadCount = reports.filter(r => !r.checked).length;
+            const badge = document.getElementById('total-unread-badge');
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.innerText = unreadCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        }
+
+        function getStoredCeoPassword() {
+            return localStorage.getItem('sea_ceo_password') || '0000';
+        }
+
+        function requestReportAuth() {
+            pendingTargetDeptId = 'ALL';
+            openAuthModal();
+        }
+
+        function requestDeptReportAuth(deptId) {
+            pendingTargetDeptId = deptId;
+            openAuthModal();
+        }
+
+        function openAuthModal() {
+            const isEn = currentLang === 'en';
+            const titleEl = document.getElementById('auth-modal-title');
+            const descEl = document.getElementById('auth-modal-desc');
+            const pwInput = document.getElementById('auth-password-input');
+
+            if (titleEl) titleEl.innerText = isEn ? 'CEO Security Verification' : '원장님 보안 인증';
+            if (descEl) descEl.innerText = isEn ? 'Please enter your password.' : '보안을 위해 원장님 비밀번호를 입력해주세요.';
+            if (pwInput) pwInput.value = '';
+            
+            document.getElementById('auth-modal').classList.remove('hidden');
+            setTimeout(() => { if (pwInput) pwInput.focus(); }, 100);
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            pendingTargetDeptId = null;
+        }
+
+        function verifyReportPassword() {
+            const inputPw = document.getElementById('auth-password-input').value.trim();
+            const correctPw = getStoredCeoPassword();
+
+            if (inputPw === correctPw) {
+                closeAuthModal();
+                const targetDept = pendingTargetDeptId;
+                pendingTargetDeptId = null;
+                if (targetDept === 'ALL') {
+                    openAllReportsModalUnlocked();
+                } else {
+                    openDeptReportModalUnlocked(targetDept);
+                }
+            } else {
+                showToast(currentLang === 'en' ? 'Incorrect password.' : '비밀번호가 일치하지 않습니다.');
+                const pwInput = document.getElementById('auth-password-input');
+                if (pwInput) { pwInput.value = ''; pwInput.focus(); }
+            }
+        }
+
+        function openChangePasswordPrompt() {
+            const isEn = currentLang === 'en';
+            const newPw = prompt(isEn ? 'Enter new CEO password (4+ digits):' : '새로 사용할 원장님 비밀번호를 입력하세요 (4자리 이상):');
+            if (newPw && newPw.trim().length >= 2) {
+                localStorage.setItem('sea_ceo_password', newPw.trim());
+                showToast(isEn ? 'CEO password successfully updated.' : '원장님 비밀번호가 변경되었습니다.');
+            } else if (newPw !== null) {
+                showToast(isEn ? 'Password must be at least 2 characters.' : '비밀번호는 2글자 이상이어야 합니다.');
+            }
+        }
+
+        function openAllReportsModalUnlocked() {
+            currentReportFilterDeptId = 'ALL';
+            openReportModalUI();
+        }
+
+        function openDeptReportModalUnlocked(deptId) {
+            currentReportFilterDeptId = deptId;
+            openReportModalUI();
+        }
+
+        function triggerAiHomeworkScanNow() {
+            const now = new Date();
+            const hours = now.getHours();
+            const dateStr = now.toISOString().replace('T', ' ').substring(0, 16);
+
+            let scanType = '[AI 자동감지] 중등부 23:00 숙제 미완료 보고';
+            let studentList = '중등부 B반: 김철수, 이영희 (총 2명)';
+
+            if (hours >= 24 || hours < 6) {
+                scanType = '[AI 자동감지] 고등부 24:00 숙제 미완료 보고';
+                studentList = '고등부 수능특강반: 박민수, 최지은, 정수진 (총 3명)';
+            } else if (hours >= 23) {
+                scanType = '[AI 자동감지] 중등부 23:00 숙제 미완료 보고';
+                studentList = '중등부 B반: 김철수, 이영희 (총 2명)';
+            } else {
+                scanType = '[AI 자동감지] 수동 실시간 숙제 미완료 스캔';
+                studentList = '대상 학생: 홍길동, 김영수 (총 2명)';
+            }
+
+            const aiReport = {
+                id: 'rep_' + Date.now(),
+                deptId: 'dept2',
+                manager: '지훈 매니저 (AI 과제관리)',
+                type: scanType,
+                content: `[AI 자동 스캔 결과]\n- 감지 시각: ${dateStr}\n- 미제출 대상: ${studentList}\n- 조치 내용: 미제출 학생 스마트폰으로 [숙제 미완료 즉시 리마인드 알림톡] 및 학부모 안심 리포트가 자동 발송되었습니다. 원장님 확인을 위해 보고함에 자동 등록합니다.`,
+                date: dateStr,
+                checked: false,
+                feedback: ''
+            };
+
+            reports.unshift(aiReport);
+            saveReportsToStorage();
+            if (!document.getElementById('report-modal').classList.contains('hidden')) {
+                renderReportList();
+            }
+            showToast('⚡ AI 매니저가 미제출 학생 감지 및 학생/원장님 동시 보고를 완료했습니다!');
+        }
+
+        function openReportModalUI() {
+            const isEn = currentLang === 'en';
+            const select = document.getElementById('report-dept-select');
+            select.innerHTML = departments.map(d => {
+                const label = isEn
+                    ? `${d.engName ? d.engName.replace(/[()]/g, '') : d.name} (${d.engManager || d.manager})`
+                    : `${d.name} (${d.manager})`;
+                return `<option value="${d.id}" ${d.id === currentReportFilterDeptId ? 'selected' : ''}>${label}</option>`;
+            }).join('');
+
+            if (currentReportFilterDeptId === 'ALL') {
+                document.getElementById('report-modal-title').innerText = isEn ? 'All Department Reports & CEO Approval' : '전 부서 통합 업무 보고함 (인증됨)';
+                document.getElementById('report-modal-subtitle').innerText = isEn ? 'Review reports from all managers in real time' : '부서 매니저들이 올린 보고를 안전하게 확인하고 결재합니다';
+            } else {
+                const targetDept = departments.find(d => d.id === currentReportFilterDeptId);
+                const dName = targetDept ? (isEn ? targetDept.engName.replace(/[()]/g, '') : targetDept.name) : '';
+                const mName = targetDept ? (isEn ? targetDept.engManager : targetDept.manager) : '';
+                document.getElementById('report-modal-title').innerText = isEn ? `${dName} · Report Box` : `${dName} (${mName}) 업무 보고함 (인증됨)`;
+                document.getElementById('report-modal-subtitle').innerText = isEn ? 'Submit daily report or request CEO approval' : '해당 부서의 업무 보고 등록 및 원장님 피드백 확인';
+            }
+
+            document.getElementById('lbl-report-dept').innerText = isEn ? 'Department / Manager' : '보고 부서 / 매니저';
+            document.getElementById('lbl-report-type').innerText = isEn ? 'Report Type' : '보고 구분';
+            document.getElementById('submit-report-label').innerText = isEn ? 'Submit Report to CEO' : '원장님께 보고 올리기';
+            document.getElementById('report-content-input').placeholder = isEn
+                ? 'Enter daily task summary, student/parent feedback, or approval request...'
+                : '보고할 주요 업무 내용, 미제출 학생 명단, 또는 원장님 결재 요청 사항을 입력하세요...';
+
+            renderReportList();
+            document.getElementById('report-modal').classList.remove('hidden');
+        }
+
+        function closeReportModal() {
+            document.getElementById('report-modal').classList.add('hidden');
+        }
+
+        function submitNewReport() {
+            const deptId = document.getElementById('report-dept-select').value;
+            const type = document.getElementById('report-type-select').value;
+            const content = document.getElementById('report-content-input').value.trim();
+
+            if (!content) {
+                showToast(currentLang === 'en' ? 'Please enter report content.' : '보고 내용을 입력해주세요.');
+                return;
+            }
+
+            const dept = departments.find(d => d.id === deptId);
+            const managerName = dept ? (currentLang === 'en' ? (dept.engManager || dept.manager) : dept.manager) : '매니저';
+
+            const newRep = {
+                id: 'rep_' + Date.now(),
+                deptId: deptId,
+                manager: managerName,
+                type: type,
+                content: content,
+                date: new Date().toISOString().replace('T', ' ').substring(0, 16),
+                checked: false,
+                feedback: ''
+            };
+
+            reports.unshift(newRep);
+            saveReportsToStorage();
+            document.getElementById('report-content-input').value = '';
+            renderReportList();
+            showToast(currentLang === 'en' ? 'Report submitted to CEO successfully.' : '원장님께 업무 보고가 성공적으로 등록되었습니다.');
+        }
+
+        function renderReportList() {
+            const container = document.getElementById('report-list-container');
+            const isEn = currentLang === 'en';
+
+            let filtered = reports;
+            if (currentReportFilterDeptId !== 'ALL') {
+                filtered = reports.filter(r => r.deptId === currentReportFilterDeptId);
+            }
+
+            const countBadge = document.getElementById('report-count-badge');
+            if (countBadge) countBadge.innerText = (isEn ? 'Total ' : '총 ') + filtered.length + (isEn ? ' reports' : '건');
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-400">
+                        ${isEn ? 'No reports registered.' : '등록된 보고 내역이 없습니다.'}
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(rep => {
+                const dept = departments.find(d => d.id === rep.deptId);
+                const deptName = dept ? (isEn ? (dept.engName ? dept.engName.replace(/[()]/g, '') : dept.name) : dept.name) : '부서';
+
+                return `
+                    <div class="bg-white dark:bg-slate-900 border ${rep.checked ? 'border-slate-200 dark:border-slate-800' : 'border-indigo-400/70 shadow-xs'} rounded-xl p-4 space-y-3 transition">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">${deptName}</span>
+                                <span class="font-bold text-slate-800 dark:text-slate-200">${rep.manager}</span>
+                                <span class="text-slate-400 text-[11px]">· ${rep.type}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-[10px] text-slate-400">${rep.date}</span>
+                                <button onclick="deleteReport('${rep.id}')" class="text-slate-400 hover:text-rose-500 text-xs px-1">✕</button>
+                            </div>
+                        </div>
+
+                        <p class="text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg text-xs whitespace-pre-wrap">${rep.content}</p>
+
+                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="flex items-center space-x-2 cursor-pointer select-none">
+                                    <input type="checkbox" ${rep.checked ? 'checked' : ''} onchange="toggleReportChecked('${rep.id}')" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                                    <span class="font-bold ${rep.checked ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'} text-xs">
+                                        ${rep.checked ? (isEn ? '✓ CEO Approved / Checked' : '✓ 원장님 확인(결재) 완료') : (isEn ? '⏳ Pending CEO Review' : '⏳ 원장님 검토 대기중')}
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="flex space-x-2">
+                                <input type="text" id="feedback-input-${rep.id}" value="${rep.feedback || ''}" placeholder="${isEn ? 'Enter CEO feedback...' : '원장님 지시사항 및 피드백을 입력하세요...'}" class="flex-1 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-lg text-xs">
+                                <button onclick="saveReportFeedback('${rep.id}')" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-lg font-bold text-xs transition">
+                                    ${isEn ? 'Save' : '피드백 저장'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleReportChecked(repId) {
+            const rep = reports.find(r => r.id === repId);
+            if (rep) {
+                rep.checked = !rep.checked;
+                saveReportsToStorage();
+                renderReportList();
+                showToast(currentLang === 'en' ? 'Approval status updated.' : '결재 상태가 반영되었습니다.');
+            }
+        }
+
+        function saveReportFeedback(repId) {
+            const input = document.getElementById(`feedback-input-${repId}`);
+            const rep = reports.find(r => r.id === repId);
+            if (rep && input) {
+                rep.feedback = input.value.trim();
+                rep.checked = true;
+                saveReportsToStorage();
+                renderReportList();
+                showToast(currentLang === 'en' ? 'Feedback saved successfully.' : '원장님 피드백이 저장되었습니다.');
+            }
+        }
+
+        function deleteReport(repId) {
+            reports = reports.filter(r => r.id !== repId);
+            saveReportsToStorage();
+            renderReportList();
+            showToast(currentLang === 'en' ? 'Report deleted.' : '보고 내역이 삭제되었습니다.');
+        }
+
         function renderDepartments() {
             const container = document.getElementById('departments-container');
+            if (!container) return;
             container.innerHTML = '';
 
-            // 부서 수에 맞춰 PC 그리드 열 개수 조정 (기본 5개 부서일 때 5열 일렬 배치)
             const totalItems = isEditMode ? departments.length + 1 : departments.length;
             const gridColsClass = totalItems <= 1 ? 'lg:grid-cols-1 max-w-xs mx-auto'
                                 : totalItems === 2 ? 'lg:grid-cols-2 max-w-2xl mx-auto'
                                 : totalItems === 3 ? 'lg:grid-cols-3 max-w-4xl mx-auto'
-                                : totalItems === 4 ? 'lg:grid-cols-4 max-w-6xl mx-auto'
-                                : 'lg:grid-cols-5';
+                                : totalItems === 4 ? 'lg:grid-cols-4 max-w-5xl mx-auto'
+                                : totalItems === 5 ? 'lg:grid-cols-5 max-w-6xl mx-auto'
+                                : 'lg:grid-cols-6';
             container.className = `grid grid-cols-1 md:grid-cols-2 ${gridColsClass} gap-5 relative`;
 
-            // 부서가 1개 이하면 가로 연결선 숨김
             const bridgeH = document.getElementById('org-bridge-h');
-            if (totalItems <= 1) {
-                bridgeH.classList.add('lg:hidden');
-            } else {
-                bridgeH.classList.remove('lg:hidden');
+            if (bridgeH) {
+                if (totalItems <= 1) bridgeH.classList.add('lg:hidden');
+                else bridgeH.classList.remove('lg:hidden');
             }
 
             departments.forEach((dept) => {
@@ -444,6 +981,8 @@
                 const displayDeptName = isEn ? (dept.engName ? dept.engName.replace(/[()]/g, '') : dept.name) : dept.name;
                 const displaySubName = isEn ? dept.name : (dept.engName || '');
                 const displayManager = isEn ? (dept.engManager || dept.manager) : dept.manager;
+
+                const deptPendingCount = reports.filter(r => r.deptId === dept.id && !r.checked).length;
 
                 const deptCard = document.createElement('div');
                 deptCard.className = 'relative flex flex-col bg-white dark:bg-[#1E2638] rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-md overflow-hidden transition duration-200 w-full';
@@ -466,22 +1005,17 @@
                 `;}).join('');
 
                 deptCard.innerHTML = `
-                    <!-- PC 연결 수직선 -->
                     <div class="hidden lg:block org-line-v-down"></div>
-
-                    <!-- 상단 밝은 부서 헤더 -->
-                    <div class="bg-slate-100 dark:bg-[#E2E8F0] px-4 py-3.5 text-center relative">
-                        <h3 class="text-sm font-extrabold text-slate-900 tracking-tight truncate">${displayDeptName}</h3>
-                        <p class="text-[10px] font-semibold text-slate-600 tracking-tight truncate whitespace-nowrap mt-0.5">
+                    <div class="bg-slate-100 dark:bg-[#161E31] border-b border-slate-200/70 dark:border-slate-700/70 px-4 py-3.5 text-center relative transition-colors">
+                        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight truncate">${displayDeptName}</h3>
+                        <p class="text-[10px] font-semibold text-slate-600 dark:text-slate-400 tracking-tight truncate whitespace-nowrap mt-0.5">
                             ${displaySubName}
                         </p>
-                        <!-- 편집 버튼 -->
-                        <button onclick="openEditModal('${dept.id}')" class="${isEditMode ? 'flex' : 'hidden'} absolute right-2.5 top-2.5 w-6 h-6 rounded-md bg-slate-900/10 hover:bg-slate-900/20 text-slate-800 items-center justify-center text-xs transition" title="부서 설정">
+                        <button onclick="openEditModal('${dept.id}')" class="${isEditMode ? 'flex' : 'hidden'} absolute right-2.5 top-2.5 w-6 h-6 rounded-md bg-slate-900/10 dark:bg-white/10 hover:bg-slate-900/20 dark:hover:bg-white/20 text-slate-800 dark:text-slate-200 items-center justify-center text-xs transition" title="부서 설정">
                             ✏️
                         </button>
                     </div>
 
-                    <!-- 중단 컬러 매니저 프로필 배너 -->
                     <div class="${dept.bannerColor || 'bg-[#3B66B8]'} px-4 py-4 flex flex-col items-center text-center text-white">
                         <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-white/80 shadow-md mb-2 bg-slate-800">
                             <img src="${dept.avatar}" class="w-full h-full object-cover object-top" alt="${displayManager}" onerror="this.src='https://placehold.co/120x120/334155/ffffff?text=M'">
@@ -489,13 +1023,24 @@
                         <span class="text-xs font-bold tracking-tight">${displayManager}</span>
                     </div>
 
-                    <!-- 하단 업무(팀) 리스트 영역 -->
                     <div class="p-3.5 flex-1 flex flex-col justify-between bg-white dark:bg-[#242E42]">
                         <div class="space-y-1">
                             ${teamsHtml || `<p class="text-[11px] text-slate-400 text-center py-3">${isEn ? 'No tasks assigned.' : '등록된 업무가 없습니다.'}</p>`}
                         </div>
 
-                        <!-- 편집 모드 시 하위 팀 추가 버튼 -->
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-700/70">
+                            <button onclick="requestDeptReportAuth('${dept.id}')" class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-indigo-50 dark:bg-slate-800/90 dark:hover:bg-indigo-950/70 text-slate-700 dark:text-indigo-300 border border-slate-200/80 dark:border-slate-700 hover:border-indigo-400/50 text-xs font-bold flex items-center justify-between transition">
+                                <span class="flex items-center space-x-1.5">
+                                    <span>🔒</span>
+                                    <span>${isEn ? 'Dept. Reports' : '업무 보고함'}</span>
+                                </span>
+                                ${deptPendingCount > 0
+                                    ? `<span class="px-1.5 py-0.5 text-[10px] font-extrabold bg-rose-500 text-white rounded-full">${deptPendingCount}</span>`
+                                    : `<span class="text-[10px] text-slate-400">🔒</span>`
+                                }
+                            </button>
+                        </div>
+
                         <button onclick="openAddTeamModal('${dept.id}')" class="${isEditMode ? 'block' : 'hidden'} mt-3 w-full py-2 border border-dashed border-slate-300 dark:border-slate-600 hover:border-indigo-400 rounded-xl text-[11px] font-semibold text-slate-500 dark:text-slate-300 hover:text-indigo-400 transition">
                             ${isEn ? '+ Add Sub-team / Task' : '+ 하위 팀(업무) 추가'}
                         </button>
@@ -505,7 +1050,6 @@
                 container.appendChild(deptCard);
             });
 
-            // 편집 모드일 때 새 부서 추가 카드 표시
             if (isEditMode) {
                 const isEn = currentLang === 'en';
                 const addCard = document.createElement('div');
@@ -521,9 +1065,9 @@
             }
         }
 
-        // 하단 네비게이션 렌더링
         function renderBottomNav() {
             const nav = document.getElementById('bottom-nav');
+            if (!nav) return;
             const isEn = currentLang === 'en';
             let html = `
                 <button onclick="goHome()" class="flex flex-col items-center justify-center text-indigo-600 dark:text-indigo-400 py-1 px-3 shrink-0 focus:outline-none">
@@ -546,7 +1090,6 @@
             nav.innerHTML = html;
         }
 
-        // 시스템(iframe) 열기
         function switchTab(tabId, title, url) {
             if (!url || url.trim() === '') {
                 showToast(`'${title}' 시스템의 연결 URL이 아직 설정되지 않았습니다.`);
@@ -561,15 +1104,26 @@
             backBtn.classList.remove('hidden');
             backBtn.classList.add('flex');
 
+            const isDark = document.documentElement.classList.contains('dark');
+            const targetTheme = isDark ? 'dark' : 'light';
+            const targetUrlObj = new URL(url, window.location.origin);
+            // 하위 시스템이 어떤 파라미터 키를 읽더라도 다크모드가 적용되도록 다중 파라미터 전달
+            targetUrlObj.searchParams.set('theme', targetTheme);
+            targetUrlObj.searchParams.set('mode', targetTheme);
+            targetUrlObj.searchParams.set('dark', isDark ? '1' : '0');
+            targetUrlObj.hash = targetTheme;
+            const themedUrl = targetUrlObj.toString();
+
             const iframe = document.getElementById('active-iframe');
-            if (iframe.src !== url) {
-                iframe.src = url;
+            if (iframe.src !== themedUrl) {
+                iframe.src = themedUrl;
             }
+            syncIframeThemeState();
         }
 
-        // 조직도 홈으로 복귀
         function goHome() {
-            document.getElementById('current-system-title').innerText = '통합 관리 포털';
+            const isEn = currentLang === 'en';
+            document.getElementById('current-system-title').innerText = isEn ? 'Enterprise Management Portal' : '통합 관리 포털';
             document.getElementById('view-iframe').classList.add('hidden');
             document.getElementById('view-home').classList.remove('hidden');
             
@@ -580,19 +1134,18 @@
             document.getElementById('active-iframe').src = '';
         }
 
-        // 조직 개편 모드 토글
         function toggleEditMode() {
             isEditMode = !isEditMode;
             const btn = document.getElementById('edit-mode-btn');
             const label = document.getElementById('edit-btn-label');
 
             if (isEditMode) {
-                label.innerText = '개편 완료';
+                label.innerText = currentLang === 'en' ? 'Done' : '개편 완료';
                 btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600', 'hover:bg-indigo-500');
                 btn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-200');
                 showToast('조직 개편 모드입니다. 부서와 팀을 추가·삭제할 수 있습니다.');
             } else {
-                label.innerText = '조직 개편';
+                label.innerText = currentLang === 'en' ? 'Reorganize' : '조직 개편';
                 btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600', 'hover:bg-indigo-500');
                 btn.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-200');
                 saveToStorage();
@@ -601,7 +1154,6 @@
             renderDepartments();
         }
 
-        // 부서 수정 모달
         function openEditModal(deptId) {
             activeDeptId = deptId;
             modalAction = 'EDIT_DEPT';
@@ -612,25 +1164,24 @@
             document.getElementById('modal-form-content').innerHTML = `
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">부서명</label>
-                    <input type="text" id="field-dept-name" value="${dept.name}" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                    <input type="text" id="field-dept-name" value="${dept.name}" class="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">영문 표기 (한 줄)</label>
-                    <input type="text" id="field-dept-eng" value="${dept.engName || ''}" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                    <input type="text" id="field-dept-eng" value="${dept.engName || ''}" class="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">담당 매니저 이름</label>
-                    <input type="text" id="field-dept-manager" value="${dept.manager}" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                    <input type="text" id="field-dept-manager" value="${dept.manager}" class="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
                 </div>
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                    <button onclick="resetDefaultOrg()" class="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline">초기 5대 부서 복원</button>
+                    <button onclick="resetDefaultOrg()" class="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline">초기 부서 구성 복원</button>
                     <button onclick="confirmDeleteDepartment('${deptId}')" class="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-bold rounded-lg transition">부서 폐지(삭제)</button>
                 </div>
             `;
             document.getElementById('edit-modal').classList.remove('hidden');
         }
 
-        // 새 부서 신설 모달
         function openAddDeptModal() {
             activeDeptId = null;
             modalAction = 'ADD_DEPT';
@@ -638,23 +1189,24 @@
             document.getElementById('modal-form-content').innerHTML = `
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">부서명 *</label>
-                    <input type="text" id="field-dept-name" placeholder="예: 입시컨설팅팀" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                    <input type="text" id="field-dept-name" placeholder="예: 입시컨설팅팀" class="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">영문 표기 (한 줄)</label>
-                    <input type="text" id="field-dept-eng" placeholder="예: (Admissions Consulting)" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                    <input type="text" id="field-dept-eng" placeholder="예: (Admissions Consulting)" class="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">담당 매니저 이름 *</label>
-                    <input type="text" id="field-dept-manager" placeholder="예: 민준 매니저" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                    <input type="text" id="field-dept-manager" placeholder="예: 민준 매니저" class="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">매니저 배너 컬러</label>
-                    <select id="field-dept-color" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                    <select id="field-dept-color" class="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
                         <option value="bg-[#3B66B8]">코발트 블루</option>
                         <option value="bg-[#354B75]">딥 네이비</option>
                         <option value="bg-[#5B478A]">로열 퍼플</option>
                         <option value="bg-[#2C7A7B]">틸 그린</option>
+                        <option value="bg-[#C05621]">오렌지 브라운</option>
                         <option value="bg-[#9B4D59]">버건디 로즈</option>
                     </select>
                 </div>
@@ -662,7 +1214,6 @@
             document.getElementById('edit-modal').classList.remove('hidden');
         }
 
-        // 하위 팀(업무) 추가 모달
         function openAddTeamModal(deptId) {
             activeDeptId = deptId;
             modalAction = 'ADD_TEAM';
@@ -671,17 +1222,16 @@
             document.getElementById('modal-form-content').innerHTML = `
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">하위 팀(업무) 이름 *</label>
-                    <input type="text" id="field-team-name" placeholder="예: 학부모 상담 일지" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                    <input type="text" id="field-team-name" placeholder="예: 학부모 상담 일지" class="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">연결 시스템 URL</label>
-                    <input type="url" id="field-team-url" placeholder="https://realtorgi.github.io/..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
+                    <input type="url" id="field-team-url" placeholder="https://realtorgi.github.io/..." class="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl">
                 </div>
             `;
             document.getElementById('edit-modal').classList.remove('hidden');
         }
 
-        // 모달 저장 처리
         function saveReorg() {
             if (modalAction === 'ADD_DEPT') {
                 const name = document.getElementById('field-dept-name').value.trim();
@@ -745,7 +1295,6 @@
             closeModal();
         }
 
-        // 하위 팀 삭제
         function deleteTeam(deptId, teamId) {
             const dept = departments.find(d => d.id === deptId);
             if (!dept) return;
@@ -754,7 +1303,6 @@
             showToast('하위 업무가 삭제되었습니다.');
         }
 
-        // 부서 삭제 확인 모달 열기
         function confirmDeleteDepartment(deptId) {
             const dept = departments.find(d => d.id === deptId);
             if (!dept) return;
@@ -777,14 +1325,13 @@
             departments = JSON.parse(JSON.stringify(defaultDepartments));
             saveToStorage();
             closeModal();
-            showToast('초기 5대 부서 구성으로 복원되었습니다.');
+            showToast('초기 부서 구성으로 복원되었습니다.');
         }
 
         function closeModal() {
             document.getElementById('edit-modal').classList.add('hidden');
         }
 
-        // 다크/라이트 모드 토글
         function toggleDarkMode() {
             const html = document.documentElement;
             const icon = document.getElementById('dark-icon');
@@ -801,6 +1348,25 @@
                 label.innerText = '라이트';
                 localStorage.setItem('theme', 'dark');
             }
+
+            // 현재 열려 있는 부서 iframe이 있다면 즉시 일괄 다크/라이트 테마 동기화
+            const viewIframe = document.getElementById('view-iframe');
+            const iframe = document.getElementById('active-iframe');
+            if (viewIframe && !viewIframe.classList.contains('hidden') && iframe && iframe.src) {
+                try {
+                    const isDark = html.classList.contains('dark');
+                    const targetTheme = isDark ? 'dark' : 'light';
+                    const urlObj = new URL(iframe.src);
+                    urlObj.searchParams.set('theme', targetTheme);
+                    urlObj.searchParams.set('mode', targetTheme);
+                    urlObj.searchParams.set('dark', isDark ? '1' : '0');
+                    urlObj.hash = targetTheme;
+                    if (iframe.src !== urlObj.toString()) {
+                        iframe.src = urlObj.toString();
+                    }
+                } catch (e) {}
+            }
+            syncIframeThemeState();
         }
     </script>
 </body>
